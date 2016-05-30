@@ -90,12 +90,14 @@ echo "#! @sbindir@nft -f
 define ext_if    = eth0
 
 # symbolic anonymous set definition
-define ssh_port = {22222}
+define ssh_port = { ${SSH_PORT} }
 define tcp_ports = { ssh, http, https}
 
 # ping.ovh.net = 213.186.33.13
 define ovh_icmp_check = {213.186.33.13}
+" > /etc/nftables/fw.ruleset
 
+echo ' 
 table filter {
         set blackhole {
                 type ipv4_addr
@@ -122,7 +124,7 @@ table filter {
         }
 }
 
-# Use ip as fail2ban doesn't support ipv6 yet
+# Use ip as fail2ban doesnt support ipv6 yet
 table ip fail2ban {
         chain input {
                 # Assign a high priority to reject as fast as possible and avoid more complex rule evaluation
@@ -144,7 +146,7 @@ table bridge filter {
         chain forward           { type filter hook forward priority -200; }
         chain output            { type filter hook output priority 200; }
 }
-" > /etc/nftables/fw.ruleset
+' >> /etc/nftables/fw.ruleset
 
 # load ruleset from file
 nft -f /etc/nftables/fw.ruleset
