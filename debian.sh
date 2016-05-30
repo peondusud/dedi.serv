@@ -7,7 +7,7 @@ apt-get update
 apt-get dist-upgrade
 
 apt-get install -y htop unzip git subversion sudo nano vim zsh mlocate
-apt-get remove bind9
+apt-get remove -y bind9
 
 updatedb
 
@@ -81,9 +81,10 @@ sysctl --system
 
 
 # nftables
-apt-get install nftables ulogd2 ulogd2-sqlite3 ulogd2-pcap ulogd2-json
+apt-get install -y nftables ulogd2 ulogd2-sqlite3 ulogd2-pcap ulogd2-json
 #nft flush table filter
 
+mkdir /etc/nftables
 echo "#! @sbindir@nft -f
 
 define ext_if    = eth0
@@ -152,15 +153,15 @@ nft -f /etc/nftables/fw.ruleset
 nft list ruleset
 
 ## check is xt_LOG module exists
-#grep xt_LOG /lib/modules/$(uname -r)/modules.dep
+grep xt_LOG /lib/modules/$(uname -r)/modules.dep
 ## check is nfnetlink_log module exists
-#grep nfnetlink_log /lib/modules/$(uname -r)/modules.dep
+grep nfnetlink_log /lib/modules/$(uname -r)/modules.dep
 
-#modprobe xt_LOG nfnetlink_log
+modprobe xt_LOG nfnetlink_log
 # xt_LOG is aliased to ipt_LOG and ip6t_LOG
 
 ## check netfilter log config
-#cat /proc/net/netfilter/nf_log  
+cat /proc/net/netfilter/nf_log  
 ## 2=IPv4, 4=Novell IPX, 10=IPv6, ...
 #define AF_UNSPEC	  0
 #define AF_UNIX		  1	/* Unix domain sockets 		*/
@@ -178,8 +179,8 @@ nft list ruleset
 # use ipt_LOG for IPv4
 #echo "ipt_LOG" > /proc/sys/net/netfilter/nf_log/2
 
-#echo "nfnetlink_log" > /proc/sys/net/netfilter/nf_log/2
-echo "255" > /proc/sys/net/netfilter/nf_conntrack_log_invalid
+echo "nfnetlink_log" > /proc/sys/net/netfilter/nf_log/2
+#echo "255" > /proc/sys/net/netfilter/nf_conntrack_log_invalid
 
 # Ulogd setup
 # use syslog
@@ -192,7 +193,7 @@ echo "255" > /proc/sys/net/netfilter/nf_conntrack_log_invalid
 
 #fail2ban
 # based on https://wiki.meurisse.org/wiki/Fail2Ban
-wget -O- http://neuro.debian.net/lists/jessie.de-m.libre > /etc/apt/sources.list.d/neurodebian.sources.list--no-install-recommends --no-install-suggests -y
+wget -O- http://neuro.debian.net/lists/jessie.de-m.libre > /etc/apt/sources.list.d/neurodebian.sources.list
 apt-key adv --recv-keys --keyserver hkp://pgp.mit.edu:80 0xA5D32F012649A5A9
 apt-get update
 apt-get install --no-install-recommends --no-install-suggests -y fail2ban python-pyinotify rsyslog whois
