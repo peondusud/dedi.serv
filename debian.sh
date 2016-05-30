@@ -23,9 +23,14 @@ sed -i "s|\(PermitRootLogin\).*$|\1 no|" /etc/ssh/sshd_config
 sed -i "s|\(X11Forwarding\).*$|\1 no|" /etc/ssh/sshd_config
 echo "AllowUsers ${USERNAME}" >> /etc/ssh/sshd_config
 
-#on your desktop
-#ssh-copy-id -i ~/.ssh/id_rsa.pub peon@peon.org
-#to use certificat and no pam password
+#
+#
+# and no pam password
+echo "on your desktop, to use certificat:
+      ssh-copy-id -i ~/.ssh/id_rsa.pub root@domain.org"
+      
+echo "Once done press [ENTER] to restart ssh service"
+read -n 1 -s
 
 systemctl restart ssh.service
 
@@ -72,6 +77,7 @@ net.ipv6.conf.eth0.disable_ipv6 = 1
 " >  /etc/sysctl.d/local.conf
 
 # reload sysctl
+echo "reload sysctl config"
 sysctl --system
 
 
@@ -79,15 +85,13 @@ sysctl --system
 apt-get install nftables ulogd2 ulogd2-sqlite3 ulogd2-pcap ulogd2-json
 #nft flush table filter
 
-"#! @sbindir@nft -f
-
-flush ruleset
+echo "#! @sbindir@nft -f
 
 define ext_if    = eth0
 
 # symbolic anonymous set definition
 define ssh_port = {22222}
-define tcp_ports = { ssh, http, https, 50000 }
+define tcp_ports = { ssh, http, https}
 
 # ping.ovh.net = 213.186.33.13
 define ovh_icmp_check = {213.186.33.13}
@@ -98,13 +102,11 @@ table filter {
         }
         chain input {
                  type filter hook input priority 0;
-                 ct state established accept
-                 ct state related accept
+                 ct state {established, related} accept
                  ct state invalid drop
                  iif lo accept
-                 ip saddr $ovh_icmp_check icmp type { echo-request} rate 10/second counter packets 0 bytes 0 accept
-                 tcp dport $ssh_port ct state new tcp flags & (syn | ack) == syn rate 15/minute log prefix "input/ssh/accept: " counter  packets 0 bytes 0 accept
-                 #tcp dport $ssh_port ct state new tcp flags & (syn | ack) == syn counter packets 0 bytes 0 accept
+                 ip saddr $ovh_icmp_check icmp type { echo-request} limit rate 3/minute burst 5 packets counter packets 0 bytes 0 accept
+                 tcp dport $ssh_port ct state new tcp flags & (syn | ack) == syn log prefix "input/ssh/accept: " counter  packets 0 bytes 0 accept
                  iif $ext_if tcp dport $tcp_ports counter accept
                  ip saddr @blackhole drop
                  counter log drop
@@ -114,8 +116,7 @@ table filter {
         }
         chain output{
                  type filter hook output priority 0;
-                 ct state established accept
-                 ct state related accept
+                 ct state {established, related} accept
                  oif lo accept
                  ct state new counter accept
         }
@@ -143,30 +144,35 @@ table bridge filter {
         chain forward           { type filter hook forward priority -200; }
         chain output            { type filter hook output priority 200; }
 }
-" > nftables.conf
+" > /etc/nftables/fw.ruleset
 
+# load ruleset from file
+nft -f /etc/nftables/fw.ruleset
 
-# check is xt_LOG module exists
-grep xt_LOG /lib/modules/$(uname -r)/modules.dep
-# check is nfnetlink_log module exists
-grep nfnetlink_log /lib/modules/$(uname -r)/modules.dep
+# display full rules
+nft list ruleset
 
-modprobe xt_LOG nfnetlink_log
+## check is xt_LOG module exists
+#grep xt_LOG /lib/modules/$(uname -r)/modules.dep
+## check is nfnetlink_log module exists
+#grep nfnetlink_log /lib/modules/$(uname -r)/modules.dep
+
+#modprobe xt_LOG nfnetlink_log
 # xt_LOG is aliased to ipt_LOG and ip6t_LOG
 
-# check netfilter log config
-cat /proc/net/netfilter/nf_log  
-# 2=IPv4, 4=Novell IPX, 10=IPv6, ...
+## check netfilter log config
+#cat /proc/net/netfilter/nf_log  
+## 2=IPv4, 4=Novell IPX, 10=IPv6, ...
 
 # use ipt_LOG for IPv4
 #echo "ipt_LOG" > /proc/sys/net/netfilter/nf_log/2
 
-echo "nfnetlink_log" > /proc/sys/net/netfilter/nf_log/2
+#echo "nfnetlink_log" > /proc/sys/net/netfilter/nf_log/2
 echo "255" > /proc/sys/net/netfilter/nf_conntrack_log_invalid
 
 # Ulogd setup
 # use syslog
-sed -i "s|^#\(.*log3.*SYSLOG\)|\1|" /etc/ulogd.conf
+#sed -i "s|^#\(.*log3.*SYSLOG\)|\1|" /etc/ulogd.conf
 
 
 
@@ -178,10 +184,10 @@ sed -i "s|^#\(.*log3.*SYSLOG\)|\1|" /etc/ulogd.conf
 wget -O- http://neuro.debian.net/lists/jessie.de-m.libre > /etc/apt/sources.list.d/neurodebian.sources.list--no-install-recommends --no-install-suggests -y
 apt-key adv --recv-keys --keyserver hkp://pgp.mit.edu:80 0xA5D32F012649A5A9
 apt-get update
-apt-get install --no-install-recommends --no-install-suggests -y fail2ban python-pyinotify python-gamin rsyslog whois
+apt-get install --no-install-recommends --no-install-suggests -y fail2ban python-pyinotify rsyslog whois
 
 mkdir /etc/nftables
-"[Init]
+echo "[Init]
 # Definition of the table used
 nftables_family = ip
 nftables_table  = fail2ban
@@ -191,9 +197,9 @@ blocktype       = drop
 
 # Remove nftables prefix. Set names are limited to 15 char so we want them all
 nftables_set_prefix =
-"> /etc/fail2ban/action.d/nftables-common.local
+" > /etc/fail2ban/action.d/nftables-common.local
 
-"[DEFAULT]
+echo "[DEFAULT]
 # Destination email for action that send you an email
 destemail = fail2ban@mydomain.example
 
@@ -209,7 +215,7 @@ chain     = input
 " > /etc/fail2ban/jail.local
 
 
-"# Jail for more extended banning of persistent abusers
+echo "# Jail for more extended banning of persistent abusers
 # !!! WARNINGS !!! 
 # 1. Make sure that your loglevel specified in fail2ban.conf/.local
 #    is not at DEBUG level -- which might then cause fail2ban to fall into
@@ -229,5 +235,5 @@ protocol  = 0-255" > /etc/fail2ban/jail.d/recidive.conf
 
 
 # install http2 nginx version
-apt install nginx-extras/jessie-backports
-
+apt install -y nginx-extras/jessie-backports
+#server_tokens off
