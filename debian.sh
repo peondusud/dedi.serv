@@ -11,21 +11,20 @@ apt-get remove bind9
 
 updatedb
 
+echo "add new user: ${USERNAME}"
 useradd -ms /bin/zsh ${USERNAME}
 passwd ${USERNAME}
 
 #add ${USERNAME} to sudoers
 echo "${USERNAME}    ALL=(ALL:ALL) ALL" >> /etc/sudoers
 
+echo "setting SSH config"
 #ssh server conf
 sed -i "s|\(Port\).*$|\1 ${SSH_PORT}|" /etc/ssh/sshd_config
 sed -i "s|\(PermitRootLogin\).*$|\1 no|" /etc/ssh/sshd_config
 sed -i "s|\(X11Forwarding\).*$|\1 no|" /etc/ssh/sshd_config
 echo "AllowUsers ${USERNAME}" >> /etc/ssh/sshd_config
 
-#
-#
-# and no pam password
 echo "on your desktop, to use certificat:
       ssh-copy-id -i ~/.ssh/id_rsa.pub root@domain.org"
       
@@ -201,11 +200,13 @@ nftables_set_prefix =
 
 echo "[DEFAULT]
 # Destination email for action that send you an email
-destemail = fail2ban@mydomain.example
+destemail = root@localhost
 
 # Sender email. Warning: not all actions take this into account. Make sure to test if you rely on this
-sender    = fail2ban@mydomain.example
+sender    = root@localhost
 
+# Default action. Will block user
+#action    = %(action_)s
 # Default action. Will block user and send you an email with whois content and log lines.
 action    = %(action_mwl)s
 
@@ -232,6 +233,9 @@ findtime  = 86400 ; 1 day
 maxretry  = 3 
 protocol  = 0-255" > /etc/fail2ban/jail.d/recidive.conf
 
+sed -i "s|\(port *=\) ssh|\1 ${SSH_PORT}|" /etc/fail2ban/jail.conf
+#change sendmail to mail in jail.conf
+#mta = sendmail
 
 
 # install http2 nginx version
