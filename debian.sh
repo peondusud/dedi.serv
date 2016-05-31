@@ -256,3 +256,10 @@ sed -i "s|\(port *=\) ssh|\1 ${SSH_PORT}|" /etc/fail2ban/jail.conf
 # install http2 nginx version
 apt install -y nginx-extras/jessie-backports
 #server_tokens off
+
+cd /opt
+git clone https://github.com/certbot/certbot
+cd certbot
+./certbot-auto --help
+
+certbot-auto --config cli.ini
