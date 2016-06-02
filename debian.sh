@@ -269,11 +269,11 @@ sed -i "s|\(port *=\) ssh|\1 ${SSH_PORT}|" /etc/fail2ban/jail.conf
 #mta = sendmail
 
 # docker
-apt-get install apt-transport-https ca-certificates
+apt-get install -y apt-transport-https ca-certificates
 apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
 echo "deb https://apt.dockerproject.org/repo debian-jessie main" > /etc/apt/sources.list.d/docker.list
 apt-get update
-apt-cache policy docker-engine
+apt-get install -y docker-engine
 sudo groupadd docker
 gpasswd -a ${USERNAME} docker
 service docker restart
