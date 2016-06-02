@@ -93,8 +93,24 @@ define ext_if    = eth0
 define ssh_port = { ${SSH_PORT} }
 define tcp_ports = { ssh, http, https}
 
-# ping.ovh.net = 213.186.33.13
-define ovh_icmp_check = {213.186.33.13}
+# # https://docs.ovh.com/pages/releaseview.action?pageId=9928706
+define ovh_icmp_check = {
+                         ping.ovh.net,
+                         a2.ovh.net,
+                         proxy.p19.ovh.net,
+                         proxy.rbx.ovh.net,
+                         proxy.sbg.ovh.net,
+                         proxy.bhs.ovh.net,
+                         proxy.ovh.net,
+                         rtm-collector.ovh.net,
+                         151.80.231.244,
+                         151.80.231.245,
+                         151.80.231.246,
+                         92.222.184.0/24,
+                         92.222.185.0/24,
+                         92.222.186.0/24,
+                         167.114.37.0/24
+                        }
 " > /etc/nftables/fw.ruleset
 
 echo ' 
@@ -107,7 +123,7 @@ table filter {
                  ct state {established, related} accept
                  ct state invalid drop
                  iif lo accept
-                 ip saddr $ovh_icmp_check icmp type { echo-request} limit rate 3/minute burst 5 packets counter packets 0 bytes 0 accept
+                 ip saddr $ovh_icmp_check icmp type { echo-request} limit rate 20/minute burst 25 packets counter packets 0 bytes 0 accept
                  tcp dport $ssh_port ct state new tcp flags & (syn | ack) == syn log prefix "input/ssh/accept: " counter  packets 0 bytes 0 accept
                  iif $ext_if tcp dport $tcp_ports counter accept
                  ip saddr @blackhole drop
