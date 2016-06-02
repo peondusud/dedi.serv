@@ -268,14 +268,31 @@ sed -i "s|\(port *=\) ssh|\1 ${SSH_PORT}|" /etc/fail2ban/jail.conf
 #change sendmail to mail in jail.conf
 #mta = sendmail
 
+# docker
+apt-get install apt-transport-https ca-certificates
+apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
+echo "deb https://apt.dockerproject.org/repo debian-jessie main" > /etc/apt/sources.list.d/docker.list
+apt-get update
+apt-cache policy docker-engine
+sudo groupadd docker
+gpasswd -a ${USERNAME} docker
+service docker restart
+docker pull debian:jessie
+docker pull alpine:latest
+
+# docker compose
+curl -L https://github.com/docker/compose/releases/download/1.7.1/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+chmod +x /usr/local/bin/docker-compose
+
+
 
 # install http2 nginx version
 apt install -y nginx-extras/jessie-backports
-#server_tokens off
 
-cd /opt
-git clone https://github.com/certbot/certbot
-cd certbot
-./certbot-auto --help
+cd /tmp
+git clone https://github.com/peondusud/nginx.SSL.offloader.git
+cd nginx.SSL.offloader
+bash -x conf.sh
 
-certbot-auto --config cli.ini
+
+
