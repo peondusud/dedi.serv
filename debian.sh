@@ -3,6 +3,10 @@
 USERNAME="peon"
 SSH_PORT=22222
 
+echo "Add new user: ${USERNAME}"
+useradd -ms /bin/zsh ${USERNAME}
+passwd ${USERNAME}
+
 apt-get update
 apt-get dist-upgrade
 
@@ -11,11 +15,7 @@ apt-get remove -y bind9
 
 updatedb
 
-echo "add new user: ${USERNAME}"
-useradd -ms /bin/zsh ${USERNAME}
-passwd ${USERNAME}
-
-#add ${USERNAME} to sudoers
+echo "Add ${USERNAME} to sudoers"
 echo "${USERNAME}    ALL=(ALL:ALL) ALL" >> /etc/sudoers
 
 echo "setting SSH config"
@@ -24,6 +24,7 @@ sed -i "s|\(Port\).*$|\1 ${SSH_PORT}|" /etc/ssh/sshd_config
 sed -i "s|\(PermitRootLogin\).*$|\1 no|" /etc/ssh/sshd_config
 sed -i "s|\(X11Forwarding\).*$|\1 no|" /etc/ssh/sshd_config
 echo "AllowUsers ${USERNAME}" >> /etc/ssh/sshd_config
+
 
 echo "on your desktop, to use certificat:
       ssh-copy-id -i ~/.ssh/id_rsa.pub root@domain.org"
