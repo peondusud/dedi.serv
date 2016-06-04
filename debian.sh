@@ -6,7 +6,7 @@ SSH_PORT=22222
 apt-get update
 apt-get dist-upgrade
 
-apt-get install -y htop unzip git subversion sudo nano vim zsh mlocate
+apt-get install -y htop curl unzip git subversion sudo nano vim zsh mlocate
 apt-get remove -y bind9
 
 updatedb
