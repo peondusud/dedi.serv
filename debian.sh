@@ -88,6 +88,18 @@ apt-get install -y nftables ulogd2 ulogd2-sqlite3 ulogd2-pcap ulogd2-json
 mkdir /etc/nftables
 echo "#! @sbindir@nft -f
 
+#NF_IP_PRI_CONNTRACK_DEFRAG (-400): priority of defragmentation
+#NF_IP_PRI_RAW (-300): traditional priority of the raw table placed before connection tracking operation
+#NF_IP_PRI_SELINUX_FIRST (-225): SELinux operations
+#NF_IP_PRI_CONNTRACK (-200): Connection tracking operations
+#NF_IP_PRI_MANGLE (-150): mangle operation
+#NF_IP_PRI_NAT_DST (-100): destination NAT
+#NF_IP_PRI_FILTER (0): filtering operation, the filter table
+#NF_IP_PRI_SECURITY (50): Place of security table where secmark can be set for example
+#NF_IP_PRI_NAT_SRC (100): source NAT
+#NF_IP_PRI_SELINUX_LAST (225): SELinux at packet exit
+#NF_IP_PRI_CONNTRACK_HELPER (300): connection tracking at exit 
+
 define ext_if    = eth0
 
 # symbolic anonymous set definition
