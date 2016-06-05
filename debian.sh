@@ -4,8 +4,8 @@ USERNAME="peon"
 SSH_PORT=22222
 
 echo "Add new user: ${USERNAME}"
-useradd -ms /bin/zsh ${USERNAME}
-passwd ${USERNAME}
+useradd -ms /bin/zsh "${USERNAME}"
+passwd "${USERNAME}"
 
 apt-get update
 apt-get dist-upgrade
