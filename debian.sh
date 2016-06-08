@@ -24,6 +24,7 @@ sed -i "s|\(Port\).*$|\1 ${SSH_PORT}|" /etc/ssh/sshd_config
 sed -i "s|\(PermitRootLogin\).*$|\1 no|" /etc/ssh/sshd_config
 sed -i "s|\(X11Forwarding\).*$|\1 no|" /etc/ssh/sshd_config
 echo "AllowUsers ${USERNAME}" >> /etc/ssh/sshd_config
+echo "AddressFamily inet # IPv4 only" >> /etc/ssh/sshd_config
 
 
 echo "on your desktop, to use certificat:
