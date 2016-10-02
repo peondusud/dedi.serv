@@ -55,6 +55,8 @@ sysctl_config () {
 
 
 nftables_config () {
+      echo "deb http://ftp.debian.org/debian jessie-backports main" >> /etc/apt/sources.list
+      apt-get update
       apt-get install -y nftables ulogd2 ulogd2-sqlite3 ulogd2-pcap ulogd2-json
       #nft flush table filter
 
