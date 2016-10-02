@@ -1,0 +1,124 @@
+# Config file based on chros73's one
+# https://github.com/chros73/rtorrent-ps_setup/blob/master/ubuntu-14.04/home/chros73/.rtorrent.rc
+
+# CMD2_REDIRECT        ("d.set_directory", "d.directory.set");
+# CMD2_REDIRECT        ("d.set_directory_base", "d.directory_base.set");
+# CMD2_REDIRECT        ("d.get_base_path", "d.base_path");
+# CMD2_REDIRECT        ("d.get_base_filename", "d.base_filename");
+# https://code.google.com/archive/p/pyroscope/wikis/RtXmlRpcReference.wiki
+
+
+# for non english chars (encoding_list)
+encoding.add = UTF-8
+
+#scgi_port = 127.0.0.1:5000
+network.scgi.open_port = 127.0.0.1:5000
+
+## SCGI socket and make it world writeable when rtorrent starts (otherwise apps can't connect to it since it was started by a normal user) (scgi_local)
+#network.scgi.open_local = /tmp/rtorrent-<username>.sock
+#schedule                = chmod_scgi_socket, 0, 0, "execute=chmod,777,/tmp/rtorrent-<username>.sock"
+
+
+# Instance layout (base paths)
+method.insert = cfg.basedir,    private|const|string, (cat,"/home/<username>/rtorrent/")
+method.insert = cfg.watch,      private|const|string, (cat,(cfg.basedir),"watch/")
+method.insert = cfg.download,   private|const|string, (cat,(cfg.basedir),"download/")
+method.insert = cfg.complete,   private|const|string, (cat,(cfg.basedir),"complete")
+method.insert = cfg.logs,       private|const|string, (cat,(cfg.basedir),"log/")
+method.insert = cfg.logfile,    private|const|string, (cat,(cfg.logs),"rtorrent-",(system.time),".log")
+
+# Tracker-less torrent and UDP tracker support
+# (conservative settings for 'private' trackers, change for 'public')
+dht.mode.set = disable
+protocol.pex.set = no
+trackers.use_udp.set = no
+
+# Peer settings
+# Maximum and minimum number of peers to connect to per torrent while downloading (applies to the 'slowup' throttle group). (min_peers, max_peers)
+throttle.min_peers.normal.set = 20
+throttle.max_peers.normal.set = 100
+# Same as above but for seeding completed torrents (-1 = same as downloading) (seeds per torrent) (applies to the 'slowup' throttle group). (min_peers_seed, max_peers_seed)
+throttle.min_peers.seed.set = 10
+throttle.max_peers.seed.set = 80
+
+# Maximum number of simultanious uploads per torrent. (upload slots!) (applies to the 'slowup' throttle group). (max_uploads)
+throttle.max_uploads.set = 15
+
+# Maximum number of simultaneous downloads and uploads slots (global slots!) (max_downloads_global, max_uploads_global)
+throttle.max_downloads.global.set = 300
+throttle.max_uploads.global.set   = 300
+
+# Listening port for incoming peer traffic (fixed; you can also randomize it)
+network.port_range.set = 50000-65000
+network.port_random.set = no
+
+# Limits for file handle resources, this is optimized for
+# an `ulimit` of 1024 (a common default). You MUST leave
+# a ceiling of handles reserved for rTorrent's internal needs!
+network.http.max_open.set = 50
+network.max_open_files.set = 600
+network.max_open_sockets.set = 300
+
+## Limit the number simultanous of HTTP request (default 32) (set_max_open_http)
+#network.http.max_open.set = 99
+## Limit the number of open files rtorrent can keep open (you have to modify the system wide settings with ulimit!!!) (set_max_open_files)
+#network.max_open_files.set = 1999
+## Limit the number of connections rtorrent can accept/make (sockets)
+#network.max_open_sockets.set = 768
+
+
+## Adding support to SSL trackers and peers (http_capath)
+#network.http.capath.set = /etc/ssl/certs
+#
+## CURL options to add support for nonofficial SSL trackers and peers
+#network.http.ssl_verify_host.set = 0
+#network.http.ssl_verify_peer.set = 0
+
+# default for network.xmlrpc.size_limit : 524288 (xmlrpc_size_limit)
+network.xmlrpc.size_limit.set = 2M
+
+# Memory resource usage (increase if you have a large number of items loaded,
+# and/or the available resources to spend)
+pieces.memory.max.set = 2000M
+# Check hash for finished torrents. (check_hash)
+pieces.hash.on_completion.set = yes
+
+
+# Basic operational settings (no need to change these)
+session.path.set = (cat,(cfg.basedir),".session")
+directory.default.set = (cat,(cfg.basedir),"download")
+
+# Watch directories (add more as you like, but use unique schedule names)
+schedule = watch_start,10,10,((load.start,(cat,(cfg.watch),"start/*.torrent")))
+schedule = watch_load,15,10,((load.normal,(cat,(cfg.watch),"load/*.torrent")))
+
+# Close torrents when diskspace is low.
+schedule = low_diskspace, 120, 120, close_low_diskspace=1000M
+
+#schedule = untied_directory,5,5,"stop_untied=/home/<username>/watch/*.torrent"
+
+# Removes torrents from client when its metafile (torrent file) has been deleted manually or by a script. 
+#schedule = untied_torrents, 8, 5, "remove_untied="
+
+schedule = untied_directory, 10, 10, stop_untied=
+schedule = untied_directory, 10, 10, close_untied=
+schedule = untied_directory, 10, 10, remove_untied=
+
+# Move finished torrent to cfg.complete
+method.set_key = event.download.finished,move_complete,"d.directory.set=$cfg.complete=;execute=mv,-u,$d.base_path=,$cfg.complete=;d.stop=;d.start="
+
+# Set the umask for this process, which is applied to all files created by the program.
+system.umask.set = 022
+
+
+# Logging:
+#   Levels = critical error warn notice info debug
+#   Groups = connection_* dht_* peer_* rpc_* storage_* thread_* tracker_* torrent_*
+print = (cat,"directory.default ",(directory.default))
+print = (cat,"Complete folfer ",(cfg.complete))
+print = (cat,"Logging to ",(cfg.logfile))
+log.open_file = "log", (cfg.logfile)
+log.add_output = "info", "log"
+#log.add_output = "tracker_debug", "log"
+
+execute = {sh,-c,/usr/bin/php /var/www/rutorrent/php/initplugins.php <username> &}
