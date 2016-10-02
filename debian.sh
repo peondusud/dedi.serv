@@ -35,47 +35,8 @@ read -n 1 -s
 
 systemctl restart ssh.service
 
-echo "
-net.ipv4.icmp_ignore_bogus_error_responses = 1
-net.ipv4.icmp_echo_ignore_broadcasts = 1
-# Enable TCP/IP SYN cookies
-net.ipv4.tcp_syncookies = 1
 
-# Log martian packets
-net.ipv4.conf.all.log_martians = 1
-
-# protect against tcp time-wait assassination hazards drop RST packets for sockets in the time-wait state
-net.ipv4.tcp_rfc1337 = 1
-
-# Reverse path filtering mechanism source validation of the packet's recieved from all the interfaces on the machine protects from attackers that are using ip spoofing methods
-net.ipv4.conf.all.rp_filter = 1
-net.ipv6.conf.all.rp_filter = 1
-
-## send redirects (not a router, disable it)
-net.ipv4.conf.all.send_redirects = 0
-net.ipv6.conf.all.send_redirects = 0
-
-# Do not accept ICMP redirects (prevent MITM attacks)
-net.ipv4.conf.all.accept_redirects = 0
-net.ipv6.conf.all.accept_redirects = 0
-
-# Do not accept IP source route packets (we are not a router)
-net.ipv4.conf.all.accept_source_route = 0
-net.ipv6.conf.all.accept_source_route = 0
-
-# Disable IPv6 autoconf
-net.ipv6.conf.all.autoconf = 0
-net.ipv6.conf.default.autoconf = 0
-net.ipv6.conf.eth0.autoconf = 0
-net.ipv6.conf.all.accept_ra = 0
-net.ipv6.conf.default.accept_ra = 0
-
-#Disable IPv6
-net.ipv6.conf.all.disable_ipv6 = 1
-net.ipv6.conf.default.disable_ipv6 = 1
-net.ipv6.conf.lo.disable_ipv6 = 1
-net.ipv6.conf.eth0.disable_ipv6 = 1
-" >  /etc/sysctl.d/local.conf
+cat local.conf >> /etc/sysctl.d/local.conf
 
 # reload sysctl
 echo "reload sysctl config"
