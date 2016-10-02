@@ -47,13 +47,16 @@ sysctl --system
 apt-get install -y nftables ulogd2 ulogd2-sqlite3 ulogd2-pcap ulogd2-json
 #nft flush table filter
 
-mkdir /etc/nftables
+mkdir -p  /etc/nftables
 mv fw.ruleset /etc/nftables/fw.ruleset
+
 # load ruleset from file
 nft -f /etc/nftables/fw.ruleset
 
 # display full rules
 nft list ruleset
+
+mv nftables-common.local /etc/fail2ban/action.d/nftables-common.local
 
 ## check is xt_LOG module exists
 grep xt_LOG /lib/modules/$(uname -r)/modules.dep
@@ -101,25 +104,9 @@ apt-key adv --recv-keys --keyserver hkp://pgp.mit.edu:80 0xA5D32F012649A5A9
 apt-get update
 apt-get install --no-install-recommends --no-install-suggests -y fail2ban python-pyinotify rsyslog whois
 
-mkdir /etc/nftables
 
 
-echo "[DEFAULT]
-# Destination email for action that send you an email
-destemail = root@localhost
-
-# Sender email. Warning: not all actions take this into account. Make sure to test if you rely on this
-sender    = root@localhost
-
-# Default action. Will block user
-#action    = %(action_)s
-# Default action. Will block user and send you an email with whois content and log lines.
-action    = %(action_mwl)s
-
-# configure nftables
-banaction = nftables-multiport
-chain     = input
-" > /etc/fail2ban/jail.local
+mv /etc/fail2ban/jail.local
 
 
 echo "# Jail for more extended banning of persistent abusers
