@@ -35,8 +35,8 @@ read -n 1 -s
 
 systemctl restart ssh.service
 
-
-cat local.conf >> /etc/sysctl.d/local.conf
+wget https://raw.githubusercontent.com/peondusud/dedi.serv/master/sysctl.d/local.conf -O /etc/sysctl.d/local.conf
+#mv sysctl.d/local.conf  /etc/sysctl.d/local.conf
 
 # reload sysctl
 echo "reload sysctl config"
@@ -48,7 +48,8 @@ apt-get install -y nftables ulogd2 ulogd2-sqlite3 ulogd2-pcap ulogd2-json
 #nft flush table filter
 
 mkdir -p  /etc/nftables
-mv fw.ruleset /etc/nftables/fw.ruleset
+wget https://raw.githubusercontent.com/peondusud/dedi.serv/master/nftables/fw.ruleset -O /etc/nftables/fw.ruleset
+#mv nftables/fw.ruleset /etc/nftables/fw.ruleset
 
 # load ruleset from file
 nft -f /etc/nftables/fw.ruleset
@@ -56,7 +57,8 @@ nft -f /etc/nftables/fw.ruleset
 # display full rules
 nft list ruleset
 
-mv nftables-common.local /etc/fail2ban/action.d/nftables-common.local
+wget https://raw.githubusercontent.com/peondusud/dedi.serv/master/fail2ban/action.d/nftables-common.local -O /etc/fail2ban/action.d/nftables-common.local
+#mv fail2ban/action.d/nftables-common.local /etc/fail2ban/action.d/nftables-common.local
 
 ## check is xt_LOG module exists
 grep xt_LOG /lib/modules/$(uname -r)/modules.dep
@@ -93,10 +95,6 @@ echo "nfnetlink_log" > /proc/sys/net/netfilter/nf_log/2
 #sed -i "s|^#\(.*log3.*SYSLOG\)|\1|" /etc/ulogd.conf
 
 
-
-
-
-
 #fail2ban
 # based on https://wiki.meurisse.org/wiki/Fail2Ban
 wget -O- http://neuro.debian.net/lists/jessie.de-m.libre > /etc/apt/sources.list.d/neurodebian.sources.list
@@ -104,31 +102,14 @@ apt-key adv --recv-keys --keyserver hkp://pgp.mit.edu:80 0xA5D32F012649A5A9
 apt-get update
 apt-get install --no-install-recommends --no-install-suggests -y fail2ban python-pyinotify rsyslog whois
 
+wget https://github.com/peondusud/dedi.serv/blob/master/fail2ban/jail.local -O /etc/fail2ban/jail.local
+#mv fail2ban/jail.local /etc/fail2ban/jail.local
 
-
-mv /etc/fail2ban/jail.local
-
-
-echo "# Jail for more extended banning of persistent abusers
-# !!! WARNINGS !!! 
-# 1. Make sure that your loglevel specified in fail2ban.conf/.local
-#    is not at DEBUG level -- which might then cause fail2ban to fall into
-#    an infinite loop constantly feeding itself with non-informative lines
-# 2. If you increase bantime, you must increase value of dbpurgeage
-#    to maintain entries for failed logins for sufficient amount of time.
-#    The default is defined in fail2ban.conf and you can override it in fail2ban.local
-[recidive]
-enabled   = true
-logpath   = /var/log/fail2ban.log
-banaction = nftables-allports
-bantime   = 86400 ; 1 day
-findtime  = 86400 ; 1 day 
-maxretry  = 3 
-protocol  = 0-255" > /etc/fail2ban/jail.d/recidive.conf
+wget https://github.com/peondusud/dedi.serv/blob/master/fail2ban/jail.d/recidive.conf -O /etc/fail2ban/jail.d/recidive.conf
+#mv fail2ban/jail.d/recidive.conf /etc/fail2ban/jail.d/recidive.conf
 
 sed -i "s|\(port *=\) ssh|\1 ${SSH_PORT}|" /etc/fail2ban/jail.conf
-#change sendmail to mail in jail.conf
-#mta = sendmail
+
 
 # docker
 apt-get install -y apt-transport-https ca-certificates
