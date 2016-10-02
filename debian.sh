@@ -48,97 +48,7 @@ apt-get install -y nftables ulogd2 ulogd2-sqlite3 ulogd2-pcap ulogd2-json
 #nft flush table filter
 
 mkdir /etc/nftables
-echo "#! @sbindir@nft -f
-
-#NF_IP_PRI_CONNTRACK_DEFRAG (-400): priority of defragmentation
-#NF_IP_PRI_RAW (-300): traditional priority of the raw table placed before connection tracking operation
-#NF_IP_PRI_SELINUX_FIRST (-225): SELinux operations
-#NF_IP_PRI_CONNTRACK (-200): Connection tracking operations
-#NF_IP_PRI_MANGLE (-150): mangle operation
-#NF_IP_PRI_NAT_DST (-100): destination NAT
-#NF_IP_PRI_FILTER (0): filtering operation, the filter table
-#NF_IP_PRI_SECURITY (50): Place of security table where secmark can be set for example
-#NF_IP_PRI_NAT_SRC (100): source NAT
-#NF_IP_PRI_SELINUX_LAST (225): SELinux at packet exit
-#NF_IP_PRI_CONNTRACK_HELPER (300): connection tracking at exit 
-
-define ext_if    = eth0
-
-# symbolic anonymous set definition
-define ssh_port = { ${SSH_PORT} }
-define tcp_ports = { ssh, http, https}
-
-# # https://docs.ovh.com/pages/releaseview.action?pageId=9928706
-define ovh_icmp_check = {
-                         ping.ovh.net,
-                         a2.ovh.net,
-                         proxy.p19.ovh.net,
-                         proxy.rbx.ovh.net,
-                         proxy.sbg.ovh.net,
-                         proxy.bhs.ovh.net,
-                         proxy.ovh.net,
-                         rtm-collector.ovh.net,
-                         151.80.231.244,
-                         151.80.231.245,
-                         151.80.231.246,
-                         92.222.184.0/24,
-                         92.222.185.0/24,
-                         92.222.186.0/24,
-                         167.114.37.0/24
-                        }
-" > /etc/nftables/fw.ruleset
-
-echo ' 
-table filter {
-        set blackhole {
-                type ipv4_addr
-        }
-        chain input {
-                 type filter hook input priority 0;
-                 ct state {established, related} accept
-                 ct state invalid drop
-                 iif lo accept
-                 ip saddr $ovh_icmp_check icmp type { echo-request} limit rate 20/minute burst 25 packets counter packets 0 bytes 0 accept
-                 tcp dport $ssh_port ct state new tcp flags & (syn | ack) == syn log prefix "input/ssh/accept: " counter  packets 0 bytes 0 accept
-                 iif $ext_if tcp dport $tcp_ports counter accept
-                 ip saddr @blackhole drop
-                 counter log drop
-        }
-        chain forward {
-                 type filter hook forward priority 0;
-        }
-        chain output{
-                 type filter hook output priority 0;
-                 ct state {established, related} accept
-                 oif lo accept
-                 ct state new counter accept
-        }
-}
-
-# Use ip as fail2ban doesnt support ipv6 yet
-table ip fail2ban {
-        chain input {
-                # Assign a high priority to reject as fast as possible and avoid more complex rule evaluation
-                type filter hook input priority 100;
-        }
-}
-
-table mangle {
-        chain output            { type route hook output priority -150; }
-}
-
-table nat {
-        chain prerouting        { type nat hook prerouting priority -150; }
-        chain postrouting       { type nat hook postrouting priority -150; }
-}
-
-table bridge filter {
-        chain input             { type filter hook input priority -200; }
-        chain forward           { type filter hook forward priority -200; }
-        chain output            { type filter hook output priority 200; }
-}
-' >> /etc/nftables/fw.ruleset
-
+mv fw.ruleset /etc/nftables/fw.ruleset
 # load ruleset from file
 nft -f /etc/nftables/fw.ruleset
 
@@ -192,17 +102,7 @@ apt-get update
 apt-get install --no-install-recommends --no-install-suggests -y fail2ban python-pyinotify rsyslog whois
 
 mkdir /etc/nftables
-echo "[Init]
-# Definition of the table used
-nftables_family = ip
-nftables_table  = fail2ban
 
-# Drop packets 
-blocktype       = drop
-
-# Remove nftables prefix. Set names are limited to 15 char so we want them all
-nftables_set_prefix =
-" > /etc/fail2ban/action.d/nftables-common.local
 
 echo "[DEFAULT]
 # Destination email for action that send you an email
