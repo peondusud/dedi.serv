@@ -1,0 +1,15 @@
+[DEFAULT]
+# Destination email for action that send you an email
+destemail = root@localhost
+
+# Sender email. Warning: not all actions take this into account. Make sure to test if you rely on this
+sender    = root@localhost
+
+# Default action. Will block user
+#action    = %(action_)s
+# Default action. Will block user and send you an email with whois content and log lines.
+action    = %(action_mwl)s
+
+# configure nftables
+banaction = nftables-multiport
+chain     = input
