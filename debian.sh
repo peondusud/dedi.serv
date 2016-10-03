@@ -4,7 +4,7 @@ USERNAME="peon"
 SSH_PORT=22222
 
 BUILD_DEPS="git subversion automake libtool libcppunit-dev build-essential pkg-config libssl-dev libcurl4-openssl-dev libsigc++-2.0-dev libncurses5-dev"
-NGINX_DEPS="nginx zlib1g-dev libpcre3 libpcre3-dev unzip apache2-utils php7.0 php7.0-cli php7.0-fpm php7.0-curl php7.0-geoip php7.0-xml php7.0-mbstring php7.0-zip php7.0-json php7.0-gd php7.0-mcrypt php7.0-msgpack php7.0-memcached php7.0-intl php7.0-sqlite3"
+NGINX_DEPS="zlib1g-dev libpcre3 libpcre3-dev unzip apache2-utils php7.0 php7.0-cli php7.0-fpm php7.0-curl php7.0-geoip php7.0-xml php7.0-mbstring php7.0-zip php7.0-json php7.0-gd php7.0-mcrypt php7.0-msgpack php7.0-memcached php7.0-intl php7.0-sqlite3"
 TORRENT_DEPS="libncursesw5 screen curl unzip unrar rar zip bzip2 ffmpeg buildtorrent mediainfo"
 
 
@@ -126,7 +126,7 @@ fail2ban_config () {
       sed -i "s|\(port *=\) ssh|\1 ${SSH_PORT}|" /etc/fail2ban/jail.conf
 }
 
-docker_config () {
+docker_install () {
       apt-get install -y apt-transport-https ca-certificates
       apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
       echo "deb https://apt.dockerproject.org/repo debian-jessie main" > /etc/apt/sources.list.d/docker.list
@@ -143,15 +143,6 @@ docker_config () {
       chmod +x /usr/local/bin/docker-compose
 }
 
-nginx_config () {
-      # install http2 nginx version
-      apt install -y nginx-extras/jessie-backports
-
-      cd /tmp
-      git clone https://github.com/peondusud/nginx.SSL.offloader.git
-      cd nginx.SSL.offloader
-      bash -x conf.sh
-}
 
 install_basics () {
       install_req
@@ -252,6 +243,8 @@ php7_conf () {
 	systemctl restart php7.0-fpm.service
 }
 
+
+
 install_rutorrent () {
 	add_repo	
 	apt-get install  --no-install-suggests -y ${BUILD_DEPS} ${NGINX_DEPS} ${TORRENT_DEPS}
@@ -261,7 +254,20 @@ install_rutorrent () {
 	rutorrent_install
 }
 
+nginx_install () {
+	echo "deb http://httpredir.debian.org/debian jessie-backports main contrib non-free" >> /etc/apt/sources.list
+	apt-get update
+	
+	# http2 nginx version
+	apt install -y nginx-extras/jessie-backports
+
+	cd /tmp
+	git clone https://github.com/peondusud/nginx.SSL.offloader.git
+	cd nginx.SSL.offloader
+	bash -x conf.sh
+}
+
 install_basics
 #docker_config
-#nginx_config
+#nginx_install
 install_rutorrent
