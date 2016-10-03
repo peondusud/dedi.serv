@@ -3,6 +3,10 @@
 USERNAME="peon"
 SSH_PORT=22222
 
+BUILD_DEPS="git subversion automake libtool libcppunit-dev build-essential pkg-config libssl-dev libcurl4-openssl-dev libsigc++-2.0-dev libncurses5-dev"
+NGINX_DEPS="nginx zlib1g-dev libpcre3 libpcre3-dev unzip apache2-utils php7.0 php7.0-cli php7.0-fpm php7.0-curl php7.0-geoip php7.0-xml php7.0-mbstring php7.0-zip php7.0-json php7.0-gd php7.0-mcrypt php7.0-msgpack php7.0-memcached php7.0-intl php7.0-sqlite3"
+TORRENT_DEPS="libncursesw5 screen curl unzip unrar rar zip bzip2 ffmpeg buildtorrent mediainfo"
+
 
 install_req () {
       apt-get update
@@ -11,7 +15,6 @@ install_req () {
       apt-get install -y htop curl unzip git subversion nano vim zsh 
       apt-get remove -y bind9
 }
-
 
 new_user_config () {
       sudo apt-get install -y sudo
@@ -23,7 +26,6 @@ new_user_config () {
       echo "Add ${USERNAME} to sudoers"
       echo "${USERNAME}    ALL=(ALL:ALL) ALL" >> /etc/sudoers
 }
-
 
 ssh_config () {
 
@@ -137,10 +139,9 @@ docker_config () {
       docker pull alpine:latest
 
       # docker compose
-      curl -L https://github.com/docker/compose/releases/download/1.7.1/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+      curl -L https://github.com/docker/compose/releases/download/1.8.0/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
       chmod +x /usr/local/bin/docker-compose
 }
-
 
 nginx_config () {
       # install http2 nginx version
@@ -152,7 +153,6 @@ nginx_config () {
       bash -x conf.sh
 }
 
-
 install_basics () {
       install_req
       new_user_config
@@ -162,11 +162,106 @@ install_basics () {
       fail2ban_config
 }
 
-install_req
-new_user_config
-ssh_config
-sysctl_config
-nftables_config
-fail2ban_config
+add_repo () {
+      sed -ri 's/main$/main contrib non-free/g' /etc/apt/sources.list
+
+      echo -e "\n#Depot Nginx\ndeb http://nginx.org/packages/debian/ jessie nginx" >> /etc/apt/sources.list
+      echo -e "\n#Depot Dotdeb\ndeb http://packages.dotdeb.org jessie all" >> /etc/apt/sources.list
+      echo -e "\n#Depot Multimedia\ndeb http://www.deb-multimedia.org jessie main non-free" >> /etc/apt/sources.list
+
+      curl -s http://www.dotdeb.org/dotdeb.gpg | apt-key add -
+      apt-key adv --keyserver hkp://pgp.mit.edu:80 --recv-keys 573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62
+      #apt-key adv --keyserver keyserver.ubuntu.com --recv-keys $nginx_pubkey # remove NO_PUBKEY
+      apt-get update
+      apt-get install -y --force-yes deb-multimedia-keyring
+      apt-get update
+}
+
+xmlrpc_build () {
+      cd /tmp
+      svn checkout http://svn.code.sf.net/p/xmlrpc-c/code/stable xmlrpc-c
+      cd xmlrpc-c/
+      ./configure --disable-cplusplus
+      make -j$(nproc)
+      make install
+      ldconfig
+}
+
+libtorrent_build () {
+	cd /tmp
+	git clone https://github.com/rakshasa/libtorrent.git
+	cd libtorrent
+	git checkout 0.13.6
+	./autogen.sh
+	./configure --with-posix-fallocate
+	make -j$(nproc)
+	make install
+	ldconfig
+}
+
+rtorrent_build () {
+	cd /tmp
+	git clone https://github.com/rakshasa/rtorrent.git
+	cd rtorrent
+	git checkout 0.9.6
+	./autogen.sh
+	./configure --with-xmlrpc-c --with-ncurses
+	make
+	make install
+	ldconfig
+}
+
+
+rutorrent_install () {
+	mkdir -p /var/www
+      cd /var/www
+	git clone https://github.com/Novik/ruTorrent.git rutorrent
+	cd /var/www/rutorrent/plugins/
+	git clone https://github.com/xombiemp/rutorrentMobile.git mobile
+	cd /var/www/rutorrent/plugins/
+	git clone https://github.com/nelu/rutorrent-thirdparty-plugins
+	mv rutorrent-thirdparty-plugins/* .
+	rm -rf rutorrent-thirdparty-plugins
+	chown -R www-data:www-data /var/www/rutorrent
+}
+
+
+rutorrent_conf () {
+	sed -i "s|\(\"php\".*\)'',|\1'$(which php)',|" /var/www/rutorrent/conf/config.php
+	sed -i "s|\(\"curl\".*\)'',|\1'$(which curl)',|" /var/www/rutorrent/conf/config.php
+	sed -i "s|\(\"gzip\".*\)'',|\1'$(which gzip)',|" /var/www/rutorrent/conf/config.php
+	sed -i "s|\(\"id\".*\)'',|\1'$(which id)',|" /var/www/rutorrent/conf/config.php
+	sed -i "s|\(\"stat\".*\)'',|\1'$(which stat)',|" /var/www/rutorrent/conf/config.php
+
+      wget https://raw.githubusercontent.com/peondusud/dedi.serv/master/rutorrent/conf/plugins.ini -O /var/www/rutorrent/conf/plugins.ini
+
+	sed -i 's|false|"buildtorrent"|' /var/www/rutorrent/plugins/create/conf.php
+
+	sed -i "s|\(pathToCreatetorrent = '\)';|\1$(which buildtorrent)';|" /var/www/rutorrent/plugins/create/conf.php
+	sed -i "s|\(pathToExternals\['rar'\] = '\)';|\1$(which rar)';|"  /var/www/rutorrent/plugins/filemanager/conf.php
+	sed -i "s|\(pathToExternals\['zip'\] = '\)';|\1$(which zip)';|"  /var/www/rutorrent/plugins/filemanager/conf.php
+	sed -i "s|\(pathToExternals\['unzip'\] = '\)';|\1$(which unzip)';|"  /var/www/rutorrent/plugins/filemanager/conf.php
+	sed -i "s|\(pathToExternals\['tar'\] = '\)';|\1$(which tar)';|"  /var/www/rutorrent/plugins/filemanager/conf.php
+	sed -i "s|\(pathToExternals\['gzip'\] = '\)';|\1$(which gzip)';|"  /var/www/rutorrent/plugins/filemanager/conf.php
+	sed -i "s|\(pathToExternals\['bzip2'\] = '\)';|\1$(which bzip2)';|"  /var/www/rutorrent/plugins/filemanager/conf.phpi
+}
+
+php7_conf () {
+	sed -i "s/^\(upload_max_filesize =\).*$/\1 10M/" /etc/php/7.0/fpm/php.ini
+	sed -i "s/^;\(date\.timezone =\).*$/\1 Europe\/Paris/" /etc/php/7.0/fpm/php.ini
+	systemctl restart php7.0-fpm.service
+}
+
+install_rutorrent () {
+	add_repo	
+	apt-get install  --no-install-suggests -y ${BUILD_DEPS} ${NGINX_DEPS} ${TORRENT_DEPS}
+	xmlrpc_build
+	libtorrent_build
+	rtorrent_build
+	rutorrent_install
+}
+
+install_basics
 #docker_config
 #nginx_config
+install_rutorrent
