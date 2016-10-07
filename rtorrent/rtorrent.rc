@@ -11,12 +11,13 @@
 # for non english chars (encoding_list)
 encoding.add = UTF-8
 
-#scgi_port = 127.0.0.1:5000
 network.scgi.open_port = 127.0.0.1:5000
 
 ## SCGI socket and make it world writeable when rtorrent starts (otherwise apps can't connect to it since it was started by a normal user) (scgi_local)
-#network.scgi.open_local = /tmp/rtorrent-<username>.sock
-#schedule                = chmod_scgi_socket, 0, 0, "execute=chmod,777,/tmp/rtorrent-<username>.sock"
+execute.nothrow = rm,/tmp/rtorrent-<username>.sock
+network.scgi.open_local = /tmp/rtorrent-<username>.sock
+schedule = socket_chmod,0,0,"execute=chmod,0660,/tmp/rtorrent-<username>.sock"
+schedule = socket_chgrp,0,0,"execute=chgrp,rtorrent-socket,/tmp/rtorrent-<username>.sock"
 
 
 # Instance layout (base paths)
