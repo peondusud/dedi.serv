@@ -292,7 +292,7 @@ nginx_ssl_conf () {
 	
 	mkdir -p /etc/nginx/ssl
 	if [ ! -f /etc/nginx/ssl/dhparam.pem ]; then
-		openssl dhparam -out dhparam.pem 4096
+		openssl dhparam -out /etc/nginx/ssl/dhparam.pem 4096
 	else
 		openssl dhparam -inform PEM -in /etc/nginx/ssl/dhparam.pem -check
 	fi
