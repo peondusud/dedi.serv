@@ -259,15 +259,48 @@ nginx_conf () {
 	usermod -a -G www-data nginx
 	wget https://github.com/peondusud/dedi.serv/archive/master.zip
 	unzip master.zip
-	cp -rv  dedi.serv-master/nginx /etc/
+	cp -rv dedi.serv-master/nginx /etc/
 	rm -rf dedi.serv-master master.zip
-	mkdir -p  /var/spool/nginx/client
-	mkdir  /etc/nginx/passwd/
-	openssl dhparam -out dhparam.pem 4096
-	htpasswd -s -c  /etc/nginx/passwd/rutorrent_passwd ${USERNAME}
+	mkdir -p /var/spool/nginx/client
+	mkdir -p /etc/nginx/passwd
+	mkdir -p /etc/nginx/sites-enabled
+	htpasswd -B -c  /etc/nginx/passwd/rutorrent_passwd ${USERNAME}
 	chmod 640 /etc/nginx/passwd/*
 	chown --changes www-data:www-data /etc/nginx/passwd/*	
 	systemctl restart nginx.service
+}
+
+nginx_ssl_conf () {
+	
+	mkdir -p /etc/nginx/ssl
+	if [ ! -f /etc/nginx/ssl/dhparam.pem ]; then
+		openssl dhparam -out dhparam.pem 4096
+	else
+    		openssl dhparam -inform PEM -in /etc/nginx/ssl/dhparam.pem -check
+	fi
+
+}
+
+letencrypt_conf () {
+	SHELL_PATH=$(dirname $0)
+	MYDOMAIN=peon.peon.org
+	MYMAIL=webmaster@${MYDOMAIN}
+
+	# Let's encrypt part
+	apt-get install git
+	git clone https://github.com/letsencrypt/letsencrypt /opt/letsencrypt --depth=1
+	mkdir -p /var/www/letsencrypt
+	mkdir -p /etc/letsencrypt/configs
+	mkdir -p /var/log/letsencrypt
+	cp -f ${SHELL_PATH}/letsencrypt.ini /etc/letsencrypt/configs/${MYDOMAIN}.conf
+	sed -i "s|<domain>|${MYDOMAIN}|" /etc/letsencrypt/configs/${MYDOMAIN}.conf
+	sed -i "s|<mail>|${MYMAIL}|" /etc/letsencrypt/configs/${MYDOMAIN}.conf
+	sed -i "s|<domain>|${MYDOMAIN}|" /etc/nginx/conf.d/sslproxy.conf
+	sed -i "s|<domain>|${MYDOMAIN}|" /etc/nginx/sites-available/backend.conf
+	
+	# disable nginx ssl
+	ln -s /etc/nginx/sites-available/letsencrypt.conf /etc/nginx/conf.d/letsencrypt.conf;
+	service nginx restart;
 }
 
 php7_conf () {
