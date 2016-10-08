@@ -260,7 +260,8 @@ nginx_conf () {
 	wget https://github.com/peondusud/dedi.serv/archive/master.zip
 	unzip master.zip
 	cp -rv  dedi.serv-master/nginx /etc/
-	mkdir -p  /var/spool/nginx/client
+	rm -rf dedi.serv-master master.zip
+	mkdir -p  /var/spool/nginx/client	
 	systemctl restart nginx.service
 }
 
