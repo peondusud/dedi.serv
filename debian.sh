@@ -231,8 +231,9 @@ rtorrent_build () {
 
 rtorrent_config () {
 	rtorrent_user="${USERNAME}"
-	wget https://raw.githubusercontent.com/peondusud/dedi.serv/master/rtorrent/.rtorrent.rc
+	
 	mkdir -p "/home/${rtorrent_user}/rtorrent"/{.session,download,complete,log,watch/load,watch/start}
+	wget https://raw.githubusercontent.com/peondusud/dedi.serv/master/rtorrent/.rtorrent.rc -O /home/${rtorrent_user}/.rtorrent.rc
 	sed -i "s/<username>/${rtorrent_user}/g" /home/${rtorrent_user}/.rtorrent.rc
 	chown -R ${rtorrent_user}:${rtorrent_user} /home/${rtorrent_user}/{*,.*}
 }
