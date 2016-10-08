@@ -313,19 +313,17 @@ letencrypt_conf () {
 	sed -i "s|<domain>|${MYDOMAIN}|" /etc/nginx/sites-available/rutorrent.conf
 
 	wget https://raw.githubusercontent.com/peondusud/dedi.serv/master/nginx/sites-available/letsencrypt.conf -O /etc/nginx/sites-available/letsencrypt.conf
-	ln -s /etc/nginx/sites-available/letsencrypt.conf /etc/nginx/sites-enabled/letsencrypt.conf;
-	service nginx restart;
-	echo '#!/bin/sh
-/opt/letsencrypt/letsencrypt-auto renew >> /var/log/letsencrypt/renew.log
-service nginx reload' > /etc/cron.monthly/renew_certs
+	ln -s /etc/nginx/sites-available/letsencrypt.conf /etc/nginx/sites-enabled/letsencrypt.conf
+	service nginx reload
+	
+	#renew cron.monthly task
+	echo '#!/bin/sh\nln -s /etc/nginx/sites-available/letsencrypt.conf /etc/nginx/sites-enabled/letsencrypt.conf\n/opt/letsencrypt/letsencrypt-auto renew >> /var/log/letsencrypt/renew.log\nservice nginx reload' > /etc/cron.monthly/renew_certs
 
 	# generate certs
 	/opt/letsencrypt/letsencrypt-auto certonly --config /etc/letsencrypt/configs/${MYDOMAIN}.conf
 	echo "Let's encrypt Certs will be save in /etc/letsencrypt/live/"
 
 	# enable nginx ssl
-	sed -i "s|^\(ssl .*\)off;$|\1on;|"  /etc/nginx/sites-available/rutorrent.conf
-	sed -i "s|^#\(ssl_certificate\)|\1|g" /etc/nginx/sites-available/rutorrent.conf
 	ln -s /etc/nginx/sites-available/rutorrent.conf /etc/nginx/sites-enabled/rutorrent.conf
 	service nginx reload
 
