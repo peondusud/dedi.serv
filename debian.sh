@@ -14,6 +14,7 @@ install_req () {
 
       apt-get install -y htop curl unzip git subversion nano vim zsh 
       apt-get remove -y bind9
+      #apt-get --purge autoremove 
 }
 
 new_user_config () {
@@ -258,7 +259,7 @@ install_torrent () {
 	add_repo	
 	apt-get install  --no-install-suggests -y ${BUILD_DEPS} ${NGINX_DEPS} ${TORRENT_DEPS}
 	type -P xmlrpc-c-config >/dev/null 2>&1
-	if [ $? -eq 0 ]; then
+	if [ $? -eq 1 ]; then
 		xmlrpc_build
 	fi
 	
@@ -267,7 +268,7 @@ install_torrent () {
 	fi
 	
 	type -P rtorrent >/dev/null 2>&1
-	if [ $? -eq 0 ]; then
+	if [ $? -eq 1 ]; then
 		rtorrent_build
 	fi
 	
