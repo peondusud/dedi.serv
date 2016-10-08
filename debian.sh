@@ -356,7 +356,10 @@ install_torrent () {
 	rtorrent_config	
 	rutorrent_install
 	rutorrent_conf
+	php7_conf
 	nginx_conf
+	nginx_ssl_conf
+	letencrypt_conf
 }
 
 nginx_install () {
@@ -365,11 +368,6 @@ nginx_install () {
 	
 	# http2 nginx version
 	apt install -y nginx-extras/jessie-backports
-
-	cd /tmp
-	git clone https://github.com/peondusud/nginx.SSL.offloader.git
-	cd nginx.SSL.offloader
-	bash -x conf.sh
 }
 
 settings_warning
