@@ -154,19 +154,28 @@ install_basics () {
 }
 
 add_repo () {
-      sed -ri 's/main$/main contrib non-free/g' /etc/apt/sources.list
+	sed -ri 's/main$/main contrib non-free/g' /etc/apt/sources.list
 
-      echo -e "\n#Depot Nginx\ndeb http://nginx.org/packages/debian/ jessie nginx" >> /etc/apt/sources.list
-      echo -e "\n#Depot Dotdeb\ndeb http://packages.dotdeb.org jessie all" >> /etc/apt/sources.list
-      echo -e "\n#Depot Multimedia\ndeb http://www.deb-multimedia.org jessie main non-free" >> /etc/apt/sources.list
+	find /etc/apt/ -name *.list | xargs cat | grep  ^[[:space:]]*deb | grep -v deb-src | grep "nginx.org/packages/debian/ jessie nginx"
+	if [[ $? -eq 1 ]] ; then
+		echo -e "\n#Depot Nginx\ndeb http://nginx.org/packages/debian/ jessie nginx" >> /etc/apt/sources.list
+	fi
+	find /etc/apt/ -name *.list | xargs cat | grep  ^[[:space:]]*deb | grep -v deb-src | grep "packages.dotdeb.org jessie all"
+	if [[ $? -eq 1 ]] ; then
+		echo -e "\n#Depot Dotdeb\ndeb http://packages.dotdeb.org jessie all" >> /etc/apt/sources.list
+	fi
+	find /etc/apt/ -name *.list | xargs cat | grep  ^[[:space:]]*deb | grep -v deb-src | grep "www.deb-multimedia.org jessie main non-free"
+	if [[ $? -eq 1 ]] ; then
+		echo -e "\n#Depot Multimedia\ndeb http://www.deb-multimedia.org jessie main non-free" >> /etc/apt/sources.list
+	fi
 
-      curl -s http://www.dotdeb.org/dotdeb.gpg | apt-key add -
-      apt-key adv --keyserver hkp://pgp.mit.edu:80 --recv-keys 573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62
-      #apt-key adv --keyserver keyserver.ubuntu.com --recv-keys $nginx_pubkey # remove NO_PUBKEY
-      apt-get update
-      apt-get install -y --force-yes deb-multimedia-keyring
-      apt-get update
-}
+	curl -s http://www.dotdeb.org/dotdeb.gpg | apt-key add -
+	apt-key adv --keyserver hkp://pgp.mit.edu:80 --recv-keys 573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62
+	#apt-key adv --keyserver keyserver.ubuntu.com --recv-keys $nginx_pubkey # remove NO_PUBKEY
+	apt-get update
+	apt-get install -y --force-yes deb-multimedia-keyring
+	apt-get update
+	}
 
 xmlrpc_build () {
       cd /tmp
@@ -245,13 +254,21 @@ php7_conf () {
 
 
 
-install_rutorrent () {
+install_torrent () {
 	add_repo	
 	apt-get install  --no-install-suggests -y ${BUILD_DEPS} ${NGINX_DEPS} ${TORRENT_DEPS}
-	xmlrpc_build
-	libtorrent_build
-	rtorrent_build
+	type -P xmlrpc-c-config >/dev/null 2>&1
+	if [ $? -eq 0 ]; then
+		xmlrpc_build
+	fi
+	if ! [ -e /usr/local/lib/libtorrent.so ]; then	
+		libtorrent_build
+	type -P rtorrent >/dev/null 2>&1
+	if [ $? -eq 0 ]; then
+		rtorrent_build
+	fi
 	rutorrent_install
+	rutorrent_conf
 }
 
 nginx_install () {
@@ -270,4 +287,4 @@ nginx_install () {
 install_basics
 #docker_config
 #nginx_install
-install_rutorrent
+install_torrent
