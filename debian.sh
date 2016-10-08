@@ -261,7 +261,12 @@ nginx_conf () {
 	unzip master.zip
 	cp -rv  dedi.serv-master/nginx /etc/
 	rm -rf dedi.serv-master master.zip
-	mkdir -p  /var/spool/nginx/client	
+	mkdir -p  /var/spool/nginx/client
+	mkdir  /etc/nginx/passwd/
+	openssl dhparam -out dhparam.pem 4096
+	htpasswd -s -c  /etc/nginx/passwd/rutorrent_passwd ${USERNAME}
+	chmod 640 /etc/nginx/passwd/*
+	chown --changes www-data:www-data /etc/nginx/passwd/*	
 	systemctl restart nginx.service
 }
 
