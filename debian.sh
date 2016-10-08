@@ -212,6 +212,13 @@ rtorrent_build () {
 	ldconfig
 }
 
+rtorrent_config () {
+	rtorrent_user="${USERNAME}"
+	wget https://raw.githubusercontent.com/peondusud/dedi.serv/master/rtorrent/.rtorrent.rc
+	mkdir -p "/home/${rtorrent_user}/rtorrent"/{.session,download,complete,log,watch/load,watch/start}
+	sed -i "s/<username>/${rtorrent_user}/g" /home/${rtorrent_user}/.rtorrent.rc
+	chown -R ${rtorrent_user}:${rtorrent_user} /home/${rtorrent_user}/{*,.*}
+}
 
 rutorrent_install () {
 	mkdir -p /var/www
@@ -247,6 +254,15 @@ rutorrent_conf () {
 	sed -i "s|\(pathToExternals\['bzip2'\] = '\)';|\1$(which bzip2)';|"  /var/www/rutorrent/plugins/filemanager/conf.php
 }
 
+nginx_conf () {
+	#add nginx to www-data group
+	usermod -a -G www-data nginx
+	wget https://github.com/peondusud/dedi.serv/archive/master.zip
+	unzip master.zip
+	cp -rv  dedi.serv-master/nginx /etc/
+	systemctl restart nginx.service
+}
+
 php7_conf () {
 	sed -i "s/^\(upload_max_filesize =\).*$/\1 10M/" /etc/php/7.0/fpm/php.ini
 	sed -i "s/^;\(date\.timezone =\).*$/\1 Europe\/Paris/" /etc/php/7.0/fpm/php.ini
@@ -271,9 +287,10 @@ install_torrent () {
 	if [ $? -eq 1 ]; then
 		rtorrent_build
 	fi
-	
+	rtorrent_config	
 	rutorrent_install
 	rutorrent_conf
+	nginx_conf
 }
 
 nginx_install () {
