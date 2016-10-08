@@ -10,14 +10,14 @@ TORRENT_DEPS="libncursesw5 screen curl unzip unrar rar zip bzip2 ffmpeg buildtor
 
 install_req () {
       apt-get update
-      apt-get dist-upgrade
+      apt-get -y dist-upgrade
 
       apt-get install -y htop curl unzip git subversion nano vim zsh 
       apt-get remove -y bind9
 }
 
 new_user_config () {
-      sudo apt-get install -y sudo
+      apt-get install -y sudo
       if (( $(id -u user > /dev/null 2>&1; echo $?) == 0 )); then
             echo "Add new user: ${USERNAME}"
             useradd -ms /bin/zsh "${USERNAME}"
@@ -62,7 +62,7 @@ nftables_config () {
       apt-get install -y nftables ulogd2 ulogd2-sqlite3 ulogd2-pcap ulogd2-json
       #nft flush table filter
 
-      mkdir -p  /etc/nftables
+      mkdir -p /etc/nftables
       wget https://raw.githubusercontent.com/peondusud/dedi.serv/master/nftables/fw.ruleset -O /etc/nftables/fw.ruleset
       #mv nftables/fw.ruleset /etc/nftables/fw.ruleset
 
@@ -214,7 +214,7 @@ rtorrent_build () {
 
 rutorrent_install () {
 	mkdir -p /var/www
-      cd /var/www
+	cd /var/www
 	git clone https://github.com/Novik/ruTorrent.git rutorrent
 	cd /var/www/rutorrent/plugins/
 	git clone https://github.com/xombiemp/rutorrentMobile.git mobile
@@ -233,7 +233,7 @@ rutorrent_conf () {
 	sed -i "s|\(\"id\".*\)'',|\1'$(which id)',|" /var/www/rutorrent/conf/config.php
 	sed -i "s|\(\"stat\".*\)'',|\1'$(which stat)',|" /var/www/rutorrent/conf/config.php
 
-      wget https://raw.githubusercontent.com/peondusud/dedi.serv/master/rutorrent/conf/plugins.ini -O /var/www/rutorrent/conf/plugins.ini
+      	wget https://raw.githubusercontent.com/peondusud/dedi.serv/master/rutorrent/conf/plugins.ini -O /var/www/rutorrent/conf/plugins.ini
 
 	sed -i 's|false|"buildtorrent"|' /var/www/rutorrent/plugins/create/conf.php
 
@@ -261,13 +261,16 @@ install_torrent () {
 	if [ $? -eq 0 ]; then
 		xmlrpc_build
 	fi
+	
 	if ! [ -e /usr/local/lib/libtorrent.so ]; then	
 		libtorrent_build
 	fi
+	
 	type -P rtorrent >/dev/null 2>&1
 	if [ $? -eq 0 ]; then
 		rtorrent_build
 	fi
+	
 	rutorrent_install
 	rutorrent_conf
 }
