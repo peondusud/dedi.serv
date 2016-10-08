@@ -263,6 +263,7 @@ install_torrent () {
 	fi
 	if ! [ -e /usr/local/lib/libtorrent.so ]; then	
 		libtorrent_build
+	fi
 	type -P rtorrent >/dev/null 2>&1
 	if [ $? -eq 0 ]; then
 		rtorrent_build
