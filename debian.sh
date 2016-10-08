@@ -244,7 +244,7 @@ rutorrent_conf () {
 	sed -i "s|\(pathToExternals\['unzip'\] = '\)';|\1$(which unzip)';|"  /var/www/rutorrent/plugins/filemanager/conf.php
 	sed -i "s|\(pathToExternals\['tar'\] = '\)';|\1$(which tar)';|"  /var/www/rutorrent/plugins/filemanager/conf.php
 	sed -i "s|\(pathToExternals\['gzip'\] = '\)';|\1$(which gzip)';|"  /var/www/rutorrent/plugins/filemanager/conf.php
-	sed -i "s|\(pathToExternals\['bzip2'\] = '\)';|\1$(which bzip2)';|"  /var/www/rutorrent/plugins/filemanager/conf.phpi
+	sed -i "s|\(pathToExternals\['bzip2'\] = '\)';|\1$(which bzip2)';|"  /var/www/rutorrent/plugins/filemanager/conf.php
 }
 
 php7_conf () {
