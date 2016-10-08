@@ -76,30 +76,30 @@ nftables_config () {
 	if [[ $? -eq 1 ]] ; then
 		echo "deb http://ftp.debian.org/debian jessie-backports main" >> /etc/apt/sources.list
 	fi
-      apt-get update
-      apt-get install -y nftables ulogd2 ulogd2-sqlite3 ulogd2-pcap ulogd2-json
-      #nft flush table filter
+	apt-get update
+	apt-get install -y nftables ulogd2 ulogd2-sqlite3 ulogd2-pcap ulogd2-json
+	#nft flush table filter
 
-      mkdir -p /etc/nftables
-      wget https://raw.githubusercontent.com/peondusud/dedi.serv/master/nftables/fw.ruleset -O /etc/nftables/fw.ruleset
-      #mv nftables/fw.ruleset /etc/nftables/fw.ruleset
+	mkdir -p /etc/nftables
+	wget https://raw.githubusercontent.com/peondusud/dedi.serv/master/nftables/fw.ruleset -O /etc/nftables/fw.ruleset
+	sed -i "s|\${SSH_PORT}|${SSH_PORT}|" /etc/nftables/fw.ruleset
 
-      # load ruleset from file
-      nft -f /etc/nftables/fw.ruleset
+	# load ruleset from file
+	nft -f /etc/nftables/fw.ruleset
 
-      # display full rules
-      nft list ruleset
+	# display full rules
+	nft list ruleset
 
-      wget https://raw.githubusercontent.com/peondusud/dedi.serv/master/fail2ban/action.d/nftables-common.local -O /etc/fail2ban/action.d/nftables-common.local
-      #mv fail2ban/action.d/nftables-common.local /etc/fail2ban/action.d/nftables-common.local
+	wget https://raw.githubusercontent.com/peondusud/dedi.serv/master/fail2ban/action.d/nftables-common.local -O /etc/fail2ban/action.d/nftables-common.local
+	#mv fail2ban/action.d/nftables-common.local /etc/fail2ban/action.d/nftables-common.local
 
-      ## check is xt_LOG module exists
-      grep xt_LOG /lib/modules/$(uname -r)/modules.dep
-      ## check is nfnetlink_log module exists
-      grep nfnetlink_log /lib/modules/$(uname -r)/modules.dep
+	## check is xt_LOG module exists
+	grep xt_LOG /lib/modules/$(uname -r)/modules.dep
+	## check is nfnetlink_log module exists
+	grep nfnetlink_log /lib/modules/$(uname -r)/modules.dep
 
-      modprobe xt_LOG nfnetlink_log
-      # xt_LOG is aliased to ipt_LOG and ip6t_LOG
+	modprobe xt_LOG nfnetlink_log
+	# xt_LOG is aliased to ipt_LOG and ip6t_LOG
 
       ## check netfilter log config
       cat /proc/net/netfilter/nf_log  
