@@ -72,7 +72,10 @@ sysctl_config () {
 
 
 nftables_config () {
-      echo "deb http://ftp.debian.org/debian jessie-backports main" >> /etc/apt/sources.list
+	find /etc/apt/ -name *.list | xargs cat | grep  ^[[:space:]]*deb | grep -v deb-src | grep "jessie-backports main"
+	if [[ $? -eq 1 ]] ; then
+		echo "deb http://ftp.debian.org/debian jessie-backports main" >> /etc/apt/sources.list
+	fi
       apt-get update
       apt-get install -y nftables ulogd2 ulogd2-sqlite3 ulogd2-pcap ulogd2-json
       #nft flush table filter
@@ -255,7 +258,7 @@ rutorrent_conf () {
 	sed -i "s|\(\"id\".*\)'',|\1'$(which id)',|" /var/www/rutorrent/conf/config.php
 	sed -i "s|\(\"stat\".*\)'',|\1'$(which stat)',|" /var/www/rutorrent/conf/config.php
 
-      	wget https://raw.githubusercontent.com/peondusud/dedi.serv/master/rutorrent/conf/plugins.ini -O /var/www/rutorrent/conf/plugins.ini
+	wget https://raw.githubusercontent.com/peondusud/dedi.serv/master/rutorrent/conf/plugins.ini -O /var/www/rutorrent/conf/plugins.ini
 
 	sed -i 's|false|"buildtorrent"|' /var/www/rutorrent/plugins/create/conf.php
 
@@ -290,7 +293,7 @@ nginx_ssl_conf () {
 	if [ ! -f /etc/nginx/ssl/dhparam.pem ]; then
 		openssl dhparam -out dhparam.pem 4096
 	else
-    		openssl dhparam -inform PEM -in /etc/nginx/ssl/dhparam.pem -check
+		openssl dhparam -inform PEM -in /etc/nginx/ssl/dhparam.pem -check
 	fi
 
 }
@@ -304,13 +307,28 @@ letencrypt_conf () {
 	mkdir -p /var/www/letsencrypt
 	mkdir -p /etc/letsencrypt/configs
 	mkdir -p /var/log/letsencrypt
-	cp -f ${SHELL_PATH}/letsencrypt.ini /etc/letsencrypt/configs/${MYDOMAIN}.conf
+	wget https://raw.githubusercontent.com/peondusud/dedi.serv/master/letsencrypt/letsencrypt.ini -O /etc/letsencrypt/configs/${MYDOMAIN}.conf
 	sed -i "s|<domain>|${MYDOMAIN}|" /etc/letsencrypt/configs/${MYDOMAIN}.conf
 	sed -i "s|<mail>|${MYMAIL}|" /etc/letsencrypt/configs/${MYDOMAIN}.conf
 	sed -i "s|<domain>|${MYDOMAIN}|" /etc/nginx/sites-available/rutorrent.conf
 
-	ln -s /etc/nginx/sites-available/letsencrypt.conf /etc/nginx/conf.d/letsencrypt.conf;
+	wget https://raw.githubusercontent.com/peondusud/dedi.serv/master/nginx/sites-available/letsencrypt.conf -O /etc/nginx/sites-available/letsencrypt.conf
+	ln -s /etc/nginx/sites-available/letsencrypt.conf /etc/nginx/sites-enabled/letsencrypt.conf;
 	service nginx restart;
+	echo '#!/bin/sh
+/opt/letsencrypt/letsencrypt-auto renew >> /var/log/letsencrypt/renew.log
+service nginx reload' > /etc/cron.monthly/renew_certs
+
+	# generate certs
+	/opt/letsencrypt/letsencrypt-auto certonly --config /etc/letsencrypt/configs/${MYDOMAIN}.conf
+	echo "Let's encrypt Certs will be save in /etc/letsencrypt/live/"
+
+	# enable nginx ssl
+	sed -i "s|^\(ssl .*\)off;$|\1on;|"  /etc/nginx/sites-available/rutorrent.conf
+	sed -i "s|^#\(ssl_certificate\)|\1|g" /etc/nginx/sites-available/rutorrent.conf
+	ln -s /etc/nginx/sites-available/rutorrent.conf /etc/nginx/sites-enabled/rutorrent.conf
+	service nginx reload
+
 }
 
 php7_conf () {
