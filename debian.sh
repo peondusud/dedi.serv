@@ -3,6 +3,11 @@
 USERNAME="peon"
 SSH_PORT=22222
 
+MYDOMAIN=peon.peon.org
+
+
+SHELL_PATH=$(dirname $0)
+
 BUILD_DEPS="git subversion automake libtool libcppunit-dev build-essential pkg-config libssl-dev libcurl4-openssl-dev libsigc++-2.0-dev libncurses5-dev"
 NGINX_DEPS="zlib1g-dev libpcre3 libpcre3-dev unzip apache2-utils php7.0 php7.0-cli php7.0-fpm php7.0-curl php7.0-geoip php7.0-xml php7.0-mbstring php7.0-zip php7.0-json php7.0-gd php7.0-mcrypt php7.0-msgpack php7.0-memcached php7.0-intl php7.0-sqlite3"
 TORRENT_DEPS="libncursesw5 screen curl unzip unrar rar zip bzip2 ffmpeg buildtorrent mediainfo"
@@ -281,12 +286,10 @@ nginx_ssl_conf () {
 
 }
 
+# Let's encrypt part
 letencrypt_conf () {
-	SHELL_PATH=$(dirname $0)
-	MYDOMAIN=peon.peon.org
 	MYMAIL=webmaster@${MYDOMAIN}
-
-	# Let's encrypt part
+	
 	apt-get install git
 	git clone https://github.com/letsencrypt/letsencrypt /opt/letsencrypt --depth=1
 	mkdir -p /var/www/letsencrypt
@@ -295,10 +298,8 @@ letencrypt_conf () {
 	cp -f ${SHELL_PATH}/letsencrypt.ini /etc/letsencrypt/configs/${MYDOMAIN}.conf
 	sed -i "s|<domain>|${MYDOMAIN}|" /etc/letsencrypt/configs/${MYDOMAIN}.conf
 	sed -i "s|<mail>|${MYMAIL}|" /etc/letsencrypt/configs/${MYDOMAIN}.conf
-	sed -i "s|<domain>|${MYDOMAIN}|" /etc/nginx/conf.d/sslproxy.conf
-	sed -i "s|<domain>|${MYDOMAIN}|" /etc/nginx/sites-available/backend.conf
-	
-	# disable nginx ssl
+	sed -i "s|<domain>|${MYDOMAIN}|" /etc/nginx/sites-available/rutorrent.conf
+
 	ln -s /etc/nginx/sites-available/letsencrypt.conf /etc/nginx/conf.d/letsencrypt.conf;
 	service nginx restart;
 }
