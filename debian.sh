@@ -2,7 +2,6 @@
 
 USERNAME="peon"
 SSH_PORT=22222
-
 MYDOMAIN=peon.peon.org
 
 
@@ -12,6 +11,16 @@ BUILD_DEPS="git subversion automake libtool libcppunit-dev build-essential pkg-c
 NGINX_DEPS="zlib1g-dev libpcre3 libpcre3-dev unzip apache2-utils php7.0 php7.0-cli php7.0-fpm php7.0-curl php7.0-geoip php7.0-xml php7.0-mbstring php7.0-zip php7.0-json php7.0-gd php7.0-mcrypt php7.0-msgpack php7.0-memcached php7.0-intl php7.0-sqlite3"
 TORRENT_DEPS="libncursesw5 screen curl unzip unrar rar zip bzip2 ffmpeg buildtorrent mediainfo"
 
+settings_warning () {
+	echo "USERNAME =  ${USERNAME}"
+	echo "SSH_PORT = ${SSH_PORT}"		
+	echo "MYDOMAIN = ${MYDOMAIN}"
+	echo -n "Is this a good (y/n)? "
+	read answer
+	if echo "$answer" | grep -iq "^n" ;then
+    	exit
+	fi
+}
 
 install_req () {
       apt-get update
@@ -347,6 +356,7 @@ nginx_install () {
 	bash -x conf.sh
 }
 
+settings_warning
 install_basics
 #docker_config
 #nginx_install
