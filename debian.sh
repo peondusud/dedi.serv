@@ -407,11 +407,19 @@ hardening_srv () {
 }
 
 plex_install () {
-	echo "deb http://shell.ninthgate.se/packages/debian jessie main" | tee -a /etc/apt/sources.list.d/plexmediaserver.list
+	echo "deb http://shell.ninthgate.se/packages/debian jessie main" > /etc/apt/sources.list.d/plexmediaserver.list
 	curl http://shell.ninthgate.se/packages/shell.ninthgate.se.gpg.key | apt-key add -
 	apt-get update
 	apt-get install plexmediaserver
 	service plexmediaserver start
+}
+
+plex_install () {
+	echo 'deb http://download.opensuse.org/repositories/home:/emby/Debian_8.0/ /' > /etc/apt/sources.list.d/embyserver.list 
+	curl http://download.opensuse.org/repositories/home:emby/Debian_8.0/Release.key | apt-key add -
+	apt-get update
+	apt-get install emby-server
+	service emby-server start
 }
 
 settings_warning
