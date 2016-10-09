@@ -422,6 +422,23 @@ plex_install () {
 	service emby-server start
 }
 
+sickrage_install () {
+	git clone https://github.com/SickRage/SickRage.git /opt/sickrage
+	echo "SR_USER=${rtorrent_user}"  > /etc/default/sickrage
+	echo "SR_HOME=/opt/sickrage/"    >> /etc/default/sickrage
+	echo "SR_DATA=/opt/sickrage/"    >> /etc/default/sickrage
+	echo "SR_GROUP=${rtorrent_user}" >> /etc/default/sickrage
+	chown -R ${rtorrent_user}:${rtorrent_user} /opt/sickrage
+	sed -i 's|web_root = ""|web_root = \"/sickrage\"|' /opt/sickrage/config.ini
+	
+	#service 
+	cp /opt/sickrage/runscripts/init.debian /etc/init.d/sickrage
+	chmod +x /etc/init.d/sickrage	
+	update-rc.d sickrage defaults
+	service sickrage start
+	#todo nginx reverse 8081
+}
+
 settings_warning
 install_basics
 #docker_config
