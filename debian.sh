@@ -236,6 +236,11 @@ rtorrent_config () {
 	wget https://raw.githubusercontent.com/peondusud/dedi.serv/master/rtorrent/.rtorrent.rc -O /home/${rtorrent_user}/.rtorrent.rc
 	sed -i "s/<username>/${rtorrent_user}/g" /home/${rtorrent_user}/.rtorrent.rc
 	chown -R ${rtorrent_user}:${rtorrent_user} /home/${rtorrent_user}/{*,.*}
+	
+	wget  -O /etc/systemd/system/rtorrent\@.service
+	systemctl enable rtorrent@${rtorrent_user}
+	
+
 }
 
 rutorrent_install () {
