@@ -128,21 +128,7 @@ nftables_config () {
       #sed -i "s|^#\(.*log3.*SYSLOG\)|\1|" /etc/ulogd.conf
 }
 
-fail2ban_config () {
-      # based on https://wiki.meurisse.org/wiki/Fail2Ban
-      wget -O- http://neuro.debian.net/lists/jessie.de-m.libre > /etc/apt/sources.list.d/neurodebian.sources.list
-      apt-key adv --recv-keys --keyserver hkp://pgp.mit.edu:80 0xA5D32F012649A5A9
-      apt-get update
-      apt-get install --no-install-recommends --no-install-suggests -y fail2ban python-pyinotify rsyslog whois
 
-      wget https://github.com/peondusud/dedi.serv/blob/master/fail2ban/jail.local -O /etc/fail2ban/jail.local
-      #mv fail2ban/jail.local /etc/fail2ban/jail.local
-
-      wget https://github.com/peondusud/dedi.serv/blob/master/fail2ban/jail.d/recidive.conf -O /etc/fail2ban/jail.d/recidive.conf
-      #mv fail2ban/jail.d/recidive.conf /etc/fail2ban/jail.d/recidive.conf
-
-      sed -i "s|\(port *=\) ssh|\1 ${SSH_PORT}|" /etc/fail2ban/jail.conf
-}
 
 docker_install () {
       apt-get install -y apt-transport-https ca-certificates
@@ -168,7 +154,6 @@ install_basics () {
       ssh_config
       sysctl_config
       nftables_config
-      fail2ban_config
 }
 
 add_repo () {
@@ -378,9 +363,52 @@ install_torrent () {
 	letencrypt_conf
 }
 
+fail2ban () {
+      # based on https://wiki.meurisse.org/wiki/Fail2Ban
+      wget -O- http://neuro.debian.net/lists/jessie.de-m.libre > /etc/apt/sources.list.d/neurodebian.sources.list
+      apt-key adv --recv-keys --keyserver hkp://pgp.mit.edu:80 0xA5D32F012649A5A9
+      apt-get update
+      apt-get install --no-install-recommends --no-install-suggests -y fail2ban python-pyinotify rsyslog whois
+
+      wget https://github.com/peondusud/dedi.serv/blob/master/fail2ban/jail.local -O /etc/fail2ban/jail.local
+      #mv fail2ban/jail.local /etc/fail2ban/jail.local
+
+      wget https://github.com/peondusud/dedi.serv/blob/master/fail2ban/jail.d/recidive.conf -O /etc/fail2ban/jail.d/recidive.conf
+      #mv fail2ban/jail.d/recidive.conf /etc/fail2ban/jail.d/recidive.conf
+
+      sed -i "s|\(port *=\) ssh|\1 ${SSH_PORT}|" /etc/fail2ban/jail.conf
+}
+
+portsentry () {
+	apt-get install portsentry
+	#vim /etc/portsentry/portsentry.ignore.static
+	#vim /etc/portsentry/portsentry.conf
+	#vim /etc/default/portsentry
+	service portsentry restart
+	cat /etc/hosts.deny
+}
+
+rkhunter () {
+	apt-get install -f rkhunter libwww-perl
+	#vim /etc/default/rkhunter
+	#vim /etc/rkhunter.conf
+	# test
+	rkhunter -c --sk
+	# update
+	rkhunter --propupd
+	echo 'DPkg::Post-Invoke { "if [ -x /usr/bin/rkhunter ]; then /usr/bin/rkhunter --propupd; fi"; };' > /etc/apt/apt.conf.d/90rkhunter
+}
+
+hardening_srv () {
+	fail2ban
+	#portsentry
+	#rkhunter
+	
+}
 
 
 settings_warning
 install_basics
 #docker_config
 install_torrent
+hardening_srv
