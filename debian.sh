@@ -10,6 +10,7 @@ SHELL_PATH=$(dirname $0)
 BUILD_DEPS="git subversion automake libtool libcppunit-dev build-essential pkg-config libssl-dev libcurl4-openssl-dev libsigc++-2.0-dev libncurses5-dev"
 NGINX_DEPS="zlib1g-dev libpcre3 libpcre3-dev unzip apache2-utils php7.0 php7.0-cli php7.0-fpm php7.0-curl php7.0-geoip php7.0-xml php7.0-mbstring php7.0-zip php7.0-json php7.0-gd php7.0-mcrypt php7.0-msgpack php7.0-memcached php7.0-intl php7.0-sqlite3"
 TORRENT_DEPS="libncursesw5 screen curl unzip unrar rar zip bzip2 ffmpeg buildtorrent mediainfo"
+PLEX_DEPS="alsa alsa-oss oss-compat libasound2-plugins"
 
 settings_warning () {
 	echo "USERNAME =  ${USERNAME}"
@@ -392,7 +393,7 @@ rkhunter () {
 	apt-get install -f rkhunter libwww-perl
 	#vim /etc/default/rkhunter
 	#vim /etc/rkhunter.conf
-	# test
+	# test conf
 	rkhunter -c --sk
 	# update
 	rkhunter --propupd
@@ -403,9 +404,15 @@ hardening_srv () {
 	fail2ban
 	#portsentry
 	#rkhunter
-	
 }
 
+plex_install () {
+	echo "deb http://shell.ninthgate.se/packages/debian jessie main" | tee -a /etc/apt/sources.list.d/plexmediaserver.list
+	curl http://shell.ninthgate.se/packages/shell.ninthgate.se.gpg.key | apt-key add -
+	apt-get update
+	apt-get install plexmediaserver
+	service plexmediaserver start
+}
 
 settings_warning
 install_basics
