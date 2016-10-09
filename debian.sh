@@ -440,6 +440,16 @@ sickrage_install () {
 	#todo nginx reverse 8081
 }
 
+couchpotato_install () {
+	useradd couchpotato
+	usermod -a -G ${rtorrent_user} couchpotato
+	apt-get install -y  python-lxml python-pip python-setuptools libssl-dev libffi-dev python-dev
+	pip install -U 
+	git clone https://github.com/CouchPotato/CouchPotatoServer.git
+	cp CouchPotatoServer/init/couchpotato.service /etc/systemd/system/couchpotato.service
+	systemctl enable couchpotato
+}
+
 settings_warning
 install_basics
 #docker_config
