@@ -186,6 +186,11 @@ add_repo () {
 	if [[ $? -eq 1 ]] ; then
 		echo -e "\n#Depot Multimedia\ndeb http://www.deb-multimedia.org jessie main non-free" >> /etc/apt/sources.list
 	fi
+	find /etc/apt/ -name *.list | xargs cat | grep  ^[[:space:]]*deb | grep -v deb-src | grep "jessie-backports main contrib non-free"
+	if [[ $? -eq 1 ]] ; then	
+	echo "deb http://httpredir.debian.org/debian jessie-backports main contrib non-free" >> /etc/apt/sources.list
+	fi
+	
 
 	curl -s http://www.dotdeb.org/dotdeb.gpg | apt-key add -
 	apt-key adv --keyserver hkp://pgp.mit.edu:80 --recv-keys 573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62
@@ -237,10 +242,9 @@ rtorrent_config () {
 	sed -i "s/<username>/${rtorrent_user}/g" /home/${rtorrent_user}/.rtorrent.rc
 	chown -R ${rtorrent_user}:${rtorrent_user} /home/${rtorrent_user}/{*,.*}
 	
-	wget  -O /etc/systemd/system/rtorrent\@.service
+	wget https://raw.githubusercontent.com/peondusud/dedi.serv/master/systemd/system/rtorrent%40.service -O /etc/systemd/system/rtorrent\@.service
+	systemctl start rtorrent@${rtorrent_user}
 	systemctl enable rtorrent@${rtorrent_user}
-	
-
 }
 
 rutorrent_install () {
@@ -277,6 +281,12 @@ rutorrent_conf () {
 	sed -i "s|\(pathToExternals\['bzip2'\] = '\)';|\1$(which bzip2)';|"  /var/www/rutorrent/plugins/filemanager/conf.php
 }
 
+nginx_install () {
+	# http2 nginx version
+	apt install -y nginx-extras/jessie-backports
+	apt install -y openssl/jessie-backports
+}
+
 nginx_conf () {
 	#add nginx to www-data group
 	usermod -a -G www-data nginx
@@ -301,7 +311,6 @@ nginx_ssl_conf () {
 	else
 		openssl dhparam -inform PEM -in /etc/nginx/ssl/dhparam.pem -check
 	fi
-
 }
 
 # Let's encrypt part
@@ -363,21 +372,15 @@ install_torrent () {
 	rutorrent_install
 	rutorrent_conf
 	php7_conf
+	nginx_install
 	nginx_conf
 	nginx_ssl_conf
 	letencrypt_conf
 }
 
-nginx_install () {
-	echo "deb http://httpredir.debian.org/debian jessie-backports main contrib non-free" >> /etc/apt/sources.list
-	apt-get update
-	
-	# http2 nginx version
-	apt install -y nginx-extras/jessie-backports
-}
+
 
 settings_warning
 install_basics
 #docker_config
-#nginx_install
 install_torrent
