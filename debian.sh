@@ -127,6 +127,9 @@ nftables_config () {
       # Ulogd setup
       # use syslog
       #sed -i "s|^#\(.*log3.*SYSLOG\)|\1|" /etc/ulogd.conf
+      
+      
+      nft  insert rule  filter input iif eth0 tcp dport { 50000} accept
 }
 
 
