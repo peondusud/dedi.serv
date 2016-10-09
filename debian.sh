@@ -430,6 +430,7 @@ sickrage_install () {
 	echo "SR_GROUP=${rtorrent_user}" >> /etc/default/sickrage
 	chown -R ${rtorrent_user}:${rtorrent_user} /opt/sickrage
 	sed -i 's|web_root = ""|web_root = \"/sickrage\"|' /opt/sickrage/config.ini
+	sed -i 's|handle_reverse_proxy.*$|handle_reverse_proxy = 1|' /opt/sickrage/config.ini
 	
 	#service 
 	cp /opt/sickrage/runscripts/init.debian /etc/init.d/sickrage
