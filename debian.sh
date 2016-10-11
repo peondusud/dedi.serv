@@ -409,6 +409,27 @@ hardening_srv () {
 	#rkhunter
 }
 
+mono_install () {
+	sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
+	echo "deb http://download.mono-project.com/repo/debian wheezy main" 					> /etc/apt/sources.list.d/mono-xamarin.list
+	echo "deb http://download.mono-project.com/repo/debian wheezy-apache24-compat main"	 	>> /etc/apt/sources.list.d/mono-xamarin.list
+	echo "deb http://download.mono-project.com/repo/debian wheezy-libjpeg62-compat main" 	>> /etc/apt/sources.list.d/mono-xamarin.list
+	echo "deb http://download.mono-project.com/repo/debian 38-security main" 	> /etc/apt/sources.list.d/mono-xamarin-security.list
+	echo "deb http://download.mono-project.com/repo/debian 310-security main" 	>> /etc/apt/sources.list.d/mono-xamarin-security.list
+	echo "deb http://download.mono-project.com/repo/debian 312-security main" 	>> /etc/apt/sources.list.d/mono-xamarin-security.list
+	echo "deb http://download.mono-project.com/repo/debian 40-security main" 	>> /etc/apt/sources.list.d/mono-xamarin-security.list
+	apt-get update
+	apt-get install -y mono-complete  ca-certificates-mono
+}
+
+web_deps () {
+	curl -sL https://deb.nodesource.com/setup_4.x | bash -
+	apt-get install -y nodejs
+	npm install -g bower
+	npm install -g gulp 
+	
+}
+
 plex_install () {
 	echo "deb http://shell.ninthgate.se/packages/debian jessie main" > /etc/apt/sources.list.d/plexmediaserver.list
 	curl http://shell.ninthgate.se/packages/shell.ninthgate.se.gpg.key | apt-key add -
@@ -417,11 +438,12 @@ plex_install () {
 	service plexmediaserver start
 }
 
-plex_install () {
+emby_install () {
 	echo 'deb http://download.opensuse.org/repositories/home:/emby/Debian_8.0/ /' > /etc/apt/sources.list.d/embyserver.list 
 	curl http://download.opensuse.org/repositories/home:emby/Debian_8.0/Release.key | apt-key add -
+	apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
 	apt-get update
-	apt-get install emby-server
+	apt-get install mono-complete emby-server
 	service emby-server start
 }
 
@@ -447,12 +469,74 @@ couchpotato_install () {
 	useradd couchpotato
 	usermod -a -G ${rtorrent_user} couchpotato
 	apt-get install -y  python-lxml python-pip python-setuptools libssl-dev libffi-dev python-dev
-	pip install -U 
+	#pip install -U pyopenssl
 	git clone https://github.com/CouchPotato/CouchPotatoServer.git
 	cp CouchPotatoServer/init/couchpotato.service /etc/systemd/system/couchpotato.service
 	systemctl enable couchpotato
 }
 
+koel_install () {
+	curl -sS https://getcomposer.org/installer | php
+	mv composer.phar /usr/local/bin/composer
+	git clone https://github.com/phanan/koel.git /var/www/koel
+	cd /var/www/koel
+	npm install
+	composer install
+	gulp --production
+	chown -R www-data:www-data /var/www/koel
+	php artisan koel:init
+echo "APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://koel.ndd.tld
+DB_CONNECTION=mysql
+DB_HOST=localhost
+DB_DATABASE=dbKoel
+DB_USERNAME=userKoel
+DB_PASSWORD=passSQL
+ADMIN_EMAIL=mail@exemple.com
+ADMIN_NAME=user
+ADMIN_PASSWORD=psw" > /var/www/koel/.env
+	service nginx restart	
+}
+
+
+tardis_install () {
+	cd /var/www 
+	git clone https://github.com/Jedediah04/TARDIStart.git tardistart
+	cd tardistart
+	bower install
+}
+
+headphones_install () {
+	# https://github.com/rembo10/headphones/wiki/Installation
+	useradd  --no-create-home headphones
+	git clone https://github.com/rembo10/headphones.git /opt/headphones
+	chown -R headphones:nogroup /opt/headphones
+	exec python Headphones.py & > /dev/null ; kill -9 $!
+	echo "HP_USER=headphones         #$RUN_AS, username to run headphones under, the default is headphones
+HP_HOME=/opt/headphones    #$APP_PATH, the location of Headphones.py, the default is /opt/headphones
+HP_DATA=/opt/headphones    #$DATA_DIR, the location of headphones.db, cache, logs, the default is /opt/headphones" > /etc/default/headphones
+	cp /opt/headphones/init-scripts/init.ubuntu /etc/init.d/headphones
+	chmod +x /etc/init.d/headphones
+	update-rc.d headphones defaults
+	update-rc.d headphones enable
+	echo "http_host = 0.0.0.0
+customhost = domain.tld 
+http_port = 8181 #beware sickrage" > /opt/headphones/config.ini
+	service headphones start	 
+}
+
+
+sonarr_install () {
+	# https://github.com/Sonarr/Sonarr/wiki/Installation
+	mono_install
+	apt-key adv --keyserver keyserver.ubuntu.com --recv-keys FDA5DFFC
+	echo "deb http://apt.sonarr.tv/ master main" > /etc/apt/sources.list.d/sonarr.list
+	apt-get update
+	apt-get install -y nzbdrone apt-transport-https
+	mono --debug /opt/NzbDrone/NzbDrone.exe
+	
+}
 settings_warning
 install_basics
 #docker_config
