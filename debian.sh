@@ -382,6 +382,17 @@ fail2ban () {
       #mv fail2ban/jail.d/recidive.conf /etc/fail2ban/jail.d/recidive.conf
 
       sed -i "s|\(port *=\) ssh|\1 ${SSH_PORT}|" /etc/fail2ban/jail.conf
+      
+        #https://snippets.aktagon.com/snippets/554-how-to-secure-an-nginx-server-with-fail2ban
+	#TODO 
+	# /etc/fail2ban/jail.conf
+	#banaction = iptables-multiport
+	#banaction_allports = iptables-allports
+	#action = %(action_)s	
+	#[nginx-http-auth]\n
+
+	
+
 }
 
 portsentry () {
