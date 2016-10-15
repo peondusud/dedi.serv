@@ -16,4 +16,6 @@ nmap -T4 -A -sC -sV -p1-65536 domain.org
 ```
 
 Check HTTPS setup (cipher suite,...)
+  ```
   https://www.ssllabs.com/ssltest/analyze.html?d=domain.org&hideResults=on&latest
+  ```
