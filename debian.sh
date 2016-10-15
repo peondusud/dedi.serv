@@ -241,12 +241,13 @@ rutorrent_install () {
 	mkdir -p /var/www
 	cd /var/www
 	git clone https://github.com/Novik/ruTorrent.git rutorrent
+	cp /var/www/rutorrent/images/favicon.ico /var/www/rutorrent/
 	cd /var/www/rutorrent/plugins/
 	git clone https://github.com/xombiemp/rutorrentMobile.git mobile
 	cd /var/www/rutorrent/plugins/
 	git clone https://github.com/nelu/rutorrent-thirdparty-plugins
 	mv rutorrent-thirdparty-plugins/* .
-	rm -rf rutorrent-thirdparty-plugins
+	rm -rf rutorrent-thirdparty-plugins	
 	chown -R www-data:www-data /var/www/rutorrent
 }
 
@@ -293,8 +294,7 @@ nginx_conf () {
 	systemctl restart nginx.service
 }
 
-nginx_ssl_conf () {
-	
+nginx_ssl_conf () {	
 	mkdir -p /etc/nginx/ssl
 	if [ ! -f /etc/nginx/ssl/dhparam.pem ]; then
 		openssl dhparam -out /etc/nginx/ssl/dhparam.pem 4096
@@ -381,18 +381,7 @@ fail2ban () {
       wget https://github.com/peondusud/dedi.serv/blob/master/fail2ban/jail.d/recidive.conf -O /etc/fail2ban/jail.d/recidive.conf
       #mv fail2ban/jail.d/recidive.conf /etc/fail2ban/jail.d/recidive.conf
 
-      sed -i "s|\(port *=\) ssh|\1 ${SSH_PORT}|" /etc/fail2ban/jail.conf
-      
-        #https://snippets.aktagon.com/snippets/554-how-to-secure-an-nginx-server-with-fail2ban
-	#TODO 
-	# /etc/fail2ban/jail.conf
-	#banaction = iptables-multiport
-	#banaction_allports = iptables-allports
-	#action = %(action_)s	
-	#[nginx-http-auth]\n
-
-	
-
+      sed -i "s|\(port *=\) ssh|\1 ${SSH_PORT}|" /etc/fail2ban/jail.local
 }
 
 portsentry () {
