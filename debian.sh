@@ -386,16 +386,21 @@ fail2ban () {
 
 portsentry () {
 	apt-get install portsentry
+	
+	sed -i 's|"tcp|"atcp|g' /etc/default/portsentry
+	sed -i 's|"udp|"audp|g' /etc/default/portsentry
 	#vim /etc/portsentry/portsentry.ignore.static
+	
+	sed -i 's|^\(KILL_ROUTE="\).*$|\1/usr/sbin/nft add element filter blackhole { $TARGET$ }"|' /etc/portsentry/portsentry.conf
 	#vim /etc/portsentry/portsentry.conf
-	#vim /etc/default/portsentry
 	service portsentry restart
 	cat /etc/hosts.deny
 }
 
 rkhunter () {
 	apt-get install -f rkhunter libwww-perl
-	#vim /etc/default/rkhunter
+
+	
 	#vim /etc/rkhunter.conf
 	# test conf
 	rkhunter -c --sk
