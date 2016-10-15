@@ -1,3 +1,10 @@
+# Provide customizations in jail.local file
+# .conf file can be overridden with a file named .local.
+# .conf file is read first, then .local, with later settings overriding earlier ones.
+# Thus, a .local file doesn't have to include everything in the corresponding .conf file,
+# only those settings that you wish to override.
+# Modifications should take place in the .local and not in the .conf
+
 [DEFAULT]
 # Destination email for action that send you an email
 destemail = root@localhost
@@ -6,10 +13,52 @@ destemail = root@localhost
 sender    = root@localhost
 
 # Default action. Will block user
-#action    = %(action_)s
-# Default action. Will block user and send you an email with whois content and log lines.
-action    = %(action_mwl)s
+action    = %(action_)s
+# Will block user and + email + whois + log lines.
+#action    = %(action_mwl)s
 
 # configure nftables
 banaction = nftables-multiport
 chain     = input
+
+
+[sshd]
+enabled = true
+port    = <SSH_PORT>
+bantime = 3600 # 1 hour
+maxretry = 3
+
+[sshd-ddos]
+enabled = true
+port    = <SSH_PORT>
+bantime = 3600 # 1 hour
+maxretry = 3
+
+[nginx-http-auth]
+enabled = true
+port    = http,https
+logpath = %(nginx_error_log)s
+bantime = 36000 # 10 hour
+maxretry = 3
+
+[nginx-limit-req]
+enabled = true
+port    = http,https
+logpath = %(nginx_error_log)s
+
+[nginx-botsearch]
+enabled = true
+port     = http,https
+logpath  = %(nginx_error_log)s
+maxretry = 2
+
+[php-url-fopen]
+enabled = true
+port    = http,https
+logpath = %(nginx_access_log)s
+
+[portsentry]
+enabled = false
+logpath  = /var/lib/portsentry/portsentry.history
+maxretry = 1
+
