@@ -1,0 +1,11 @@
+#!/bin/sh
+
+unlink /etc/nginx/sites-enabled/*
+ln -s /etc/nginx/sites-available/letsencrypt.conf /etc/nginx/sites-enabled/letsencrypt.conf
+service nginx reload
+/opt/letsencrypt/letsencrypt-auto renew >> /var/log/letsencrypt/renew.log
+
+sleep 10
+unlink /etc/nginx/sites-enabled/letsencrypt.conf
+ln -s /etc/nginx/sites-available/web.conf /etc/nginx/sites-enabled/web.conf
+service nginx reload
