@@ -23,21 +23,21 @@ chain     = input
 
 [sshd]
 enabled = true
-port    = <SSH_PORT>
+port    = ssh
 
 [sshd-ddos]
 enabled = true
-port    = <SSH_PORT>
+port    = ssh
 
 [nginx-http-auth]
 enabled = true
 port    = http,https
 logpath = %(nginx_error_log)s
 
-[nginx-limit-req]
-enabled = true
-port    = http,https
-logpath = %(nginx_error_log)s
+#[nginx-limit-req]
+#enabled = true
+#port    = http,https
+#logpath = %(nginx_error_log)s
 
 [nginx-botsearch]
 enabled = true
