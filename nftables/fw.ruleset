@@ -18,7 +18,8 @@ define ext_if    = eth0
 
 # symbolic anonymous set definition
 define ssh_port = { ${SSH_PORT} }
-define tcp_ports = { ssh, http, https}
+define tcp_ports = { ssh, http, https }
+define torrent_port = { 50000 }
 
 # # https://docs.ovh.com/pages/releaseview.action?pageId=9928706
 define ovh_icmp_check = {
@@ -51,6 +52,7 @@ table filter {
                  ip saddr $ovh_icmp_check icmp type { echo-request} limit rate 20/minute burst 25 packets counter packets 0 bytes 0 accept
                  tcp dport $ssh_port ct state new tcp flags & (syn | ack) == syn log prefix "input/ssh/accept: " counter  packets 0 bytes 0 accept
                  iif $ext_if tcp dport $tcp_ports counter accept
+                 iif $ext_if tcp dport $torrent_port counter accept
                  ip saddr @blackhole drop
                  counter log drop
         }
