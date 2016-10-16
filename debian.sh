@@ -566,11 +566,20 @@ sonarr_install () {
 }
 
 jackett_install () {
+	mono_install
+	adduser --system --no-create-home jackett
 	apt-get install -y libcurl-dev
 	JACKETT_VER=$(curl -s   https://github.com/Jackett/Jackett/releases/latest |  grep -Pom 1 "v\d\.\d\.\d{3}")
 	wget https://github.com/Jackett/Jackett/releases/download/${JACKETT_VER}/Jackett.Binaries.Mono.tar.gz -O /tmp/Jackett.Binaries.Mono.tar.gz
 	tar -xzf /tmp/Jackett.Binaries.Mono.tar.gz -C /opt
-	mono /opt/Jackett/JackettConsole.exe
+	mv /opt/Jackett /opt/jackett
+	chown -R jackett:jackett /opt/jackett
+	mono /opt/jackett/JackettConsole.exe
+	
+	systemctl daemon-reload
+	systemctl enable jackett
+	systemctl start jackett
+	#http://ip.address:9117
 }
 netdata_install () {
 	apt-get  install -y  zlib1g-dev uuid-dev libmnl-dev gcc make git autoconf autoconf-archive autogen automake pkg-config curl  python-yaml python-mysqldb python-psycopg2 netcat
