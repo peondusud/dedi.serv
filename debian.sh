@@ -579,7 +579,7 @@ jackett_install () {
 	pkill -u jackett
 	sed -i 's|BasePathOverride": .*|BasePathOverride": "/jackett"|' /opt/jackett/ServerConfig.json
 	#todo download systemd service
-	
+	cp dedi.serv/systemd/system/jackett.service /etc/systemd/system/jackett.service
 	systemctl daemon-reload
 	systemctl enable jackett
 	systemctl start jackett
