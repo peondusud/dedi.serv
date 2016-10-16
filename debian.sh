@@ -420,6 +420,9 @@ hardening_srv () {
 	fail2ban
 	portsentry
 	#rkhunter
+	#disable ipv6 support
+	sed -i 's|\(GRUB_CMDLINE_LINUX=\)""|\1"ipv6.disable=1"|' /etc/default/grub
+	update-grub2	
 }
 
 mono_install () {
@@ -563,7 +566,7 @@ sonarr_install () {
 
 netdata_install () {
 	apt-get install zlib1g-dev uuid-dev libmnl-dev gcc make git autoconf autoconf-archive autogen automake pkg-config curl tc python-yaml python-mysqldb python-psycopg2 lm_sensors libmnl netcat
-	git clone https://github.com/firehol/netdata.git/tmp/netdata --depth=1
+	git clone --depth=1 https://github.com/firehol/netdata.git /tmp/netdata 
 	/tmp/netdata/netdata-installer.sh --install /opt
 	
 	killall netdata
@@ -575,6 +578,18 @@ netdata_install () {
 	# start netdata
 	service netdata start
 	#http://127.0.0.1:19999/
+}
+
+syncthing_install () {
+	# Add the release PGP keys:
+	curl -s https://syncthing.net/release-key.txt | sudo apt-key add -
+
+	# Add the "release" channel to your APT sources:
+	echo "deb http://apt.syncthing.net/ syncthing release" > /etc/apt/sources.list.d/syncthing.list
+
+	# Update and install syncthing:
+	sudo apt-get update
+	sudo apt-get install syncthing
 }
 
 settings_warning
