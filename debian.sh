@@ -478,7 +478,10 @@ sickrage_install () {
 	cp /opt/sickrage/runscripts/init.systemd /etc/systemd/system/sickrage.service 
 	chown root:root /etc/systemd/system/sickrage.service
 	chmod 644 /etc/systemd/system/sickrage.service
+	# let systemd know there is a new service
+	systemctl daemon-reload
 	systemctl enable sickrage
+	systemctl start sickrage
 }
 
 couchpotato_install () {
@@ -492,7 +495,10 @@ couchpotato_install () {
 	cp CouchPotatoServer/init/couchpotato.service /etc/systemd/system/couchpotato.service
 	chown root:root /etc/systemd/system/couchpotato.service
 	chmod 644 /etc/systemd/system/couchpotato.service
+	# let systemd know there is a new service
+	systemctl daemon-reload
 	systemctl enable couchpotato
+	systemctl start couchpotato
 }
 
 koel_install () {
@@ -552,9 +558,25 @@ sonarr_install () {
 	echo "deb http://apt.sonarr.tv/ master main" > /etc/apt/sources.list.d/sonarr.list
 	apt-get update
 	apt-get install -y nzbdrone apt-transport-https
-	mono --debug /opt/NzbDrone/NzbDrone.exe
-	
+	mono --debug /opt/NzbDrone/NzbDrone.exe	
 }
+
+netdata_install () {
+	apt-get install zlib1g-dev uuid-dev libmnl-dev gcc make git autoconf autoconf-archive autogen automake pkg-config curl tc python-yaml python-mysqldb python-psycopg2 lm_sensors libmnl netcat
+	git clone https://github.com/firehol/netdata.git/tmp/netdata --depth=1
+	/tmp/netdata/netdata-installer.sh --install /opt
+	
+	killall netdata
+	/tmp/netdata/system/netdata.service /etc/systemd/system/
+	# let systemd know there is a new service
+	systemctl daemon-reload
+	# enable netdata at boot
+	systemctl enable netdata
+	# start netdata
+	service netdata start
+	#http://127.0.0.1:19999/
+}
+
 settings_warning
 install_basics
 #docker_config
