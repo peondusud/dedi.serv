@@ -565,9 +565,10 @@ sonarr_install () {
 }
 
 netdata_install () {
-	apt-get install zlib1g-dev uuid-dev libmnl-dev gcc make git autoconf autoconf-archive autogen automake pkg-config curl tc python-yaml python-mysqldb python-psycopg2 lm_sensors libmnl netcat
-	git clone --depth=1 https://github.com/firehol/netdata.git /tmp/netdata 
-	/tmp/netdata/netdata-installer.sh --install /opt
+	apt-get  install -y  zlib1g-dev uuid-dev libmnl-dev gcc make git autoconf autoconf-archive autogen automake pkg-config curl  python-yaml python-mysqldb python-psycopg2 netcat
+	git clone --depth=1 https://github.com/firehol/netdata.git /tmp/netdata
+	cd /tmp/netdata;
+	./netdata-installer.sh  --dont-wait --libs-are-really-here
 	
 	killall netdata
 	/tmp/netdata/system/netdata.service /etc/systemd/system/
