@@ -574,7 +574,11 @@ jackett_install () {
 	tar -xzf /tmp/Jackett.Binaries.Mono.tar.gz -C /opt
 	mv /opt/Jackett /opt/jackett
 	chown -R jackett:jackett /opt/jackett
-	mono /opt/jackett/JackettConsole.exe
+	sudo -u jackett mono --debug /opt/jackett/JackettConsole.exe -d /opt/jackett &
+	kill -9 $!
+	pkill -u jackett
+	sed -i 's|BasePathOverride": .*|BasePathOverride": "/jackett"|' /opt/jackett/ServerConfig.json
+	#todo download systemd service
 	
 	systemctl daemon-reload
 	systemctl enable jackett
