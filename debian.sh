@@ -537,20 +537,20 @@ tardis_install () {
 
 headphones_install () {
 	# https://github.com/rembo10/headphones/wiki/Installation
-	useradd  --no-create-home headphones
+	adduser --system --no-create-home headphones
 	git clone https://github.com/rembo10/headphones.git /opt/headphones
 	chown -R headphones:nogroup /opt/headphones
 	exec python Headphones.py & > /dev/null ; kill -9 $!
-	echo "HP_USER=headphones         #$RUN_AS, username to run headphones under, the default is headphones
-HP_HOME=/opt/headphones    #$APP_PATH, the location of Headphones.py, the default is /opt/headphones
-HP_DATA=/opt/headphones    #$DATA_DIR, the location of headphones.db, cache, logs, the default is /opt/headphones" > /etc/default/headphones
+	echo "HP_USER=headphones         #$RUN_AS, username to run headphones under, the default is headphones" > /etc/default/headphones
+	echo "HP_HOME=/opt/headphones    #$APP_PATH, the location of Headphones.py, the default is /opt/headphones" >> /etc/default/headphones
+	echo "HP_DATA=/opt/headphones    #$DATA_DIR, the location of headphones.db, cache, logs, the default is /opt/headphones" >> /etc/default/headphones
 	cp /opt/headphones/init-scripts/init.ubuntu /etc/init.d/headphones
 	chmod +x /etc/init.d/headphones
 	update-rc.d headphones defaults
 	update-rc.d headphones enable
-	echo "http_host = 0.0.0.0
-customhost = domain.tld 
-http_port = 8181 #beware sickrage" > /opt/headphones/config.ini
+	echo "http_host = 127.0.0.1" 	> /opt/headphones/config.ini
+	echo "customhost = ${MYDOMAIN}" > /opt/headphones/config.ini 
+	echo "http_port = 8181 #beware sickrage" > /opt/headphones/config.ini
 	service headphones start	 
 }
 
@@ -565,6 +565,13 @@ sonarr_install () {
 	mono --debug /opt/NzbDrone/NzbDrone.exe	
 }
 
+jackett_install () {
+	apt-get install -y libcurl-dev
+	JACKETT_VER=$(curl -s   https://github.com/Jackett/Jackett/releases/latest |  grep -Pom 1 "v\d\.\d\.\d{3}")
+	wget https://github.com/Jackett/Jackett/releases/download/${JACKETT_VER}/Jackett.Binaries.Mono.tar.gz -O /tmp/Jackett.Binaries.Mono.tar.gz
+	tar -xzf /tmp/Jackett.Binaries.Mono.tar.gz -C /opt
+	mono /opt/Jackett/JackettConsole.exe
+}
 netdata_install () {
 	apt-get  install -y  zlib1g-dev uuid-dev libmnl-dev gcc make git autoconf autoconf-archive autogen automake pkg-config curl  python-yaml python-mysqldb python-psycopg2 netcat
 	git clone --depth=1 https://github.com/firehol/netdata.git /tmp/netdata
@@ -585,10 +592,8 @@ netdata_install () {
 syncthing_install () {
 	# Add the release PGP keys:
 	curl -s https://syncthing.net/release-key.txt | sudo apt-key add -
-
 	# Add the "release" channel to your APT sources:
 	echo "deb http://apt.syncthing.net/ syncthing release" > /etc/apt/sources.list.d/syncthing.list
-
 	# Update and install syncthing:
 	sudo apt-get update
 	sudo apt-get install syncthing
