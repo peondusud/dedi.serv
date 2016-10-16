@@ -373,6 +373,9 @@ fail2ban () {
       wget -O- http://neuro.debian.net/lists/jessie.de-m.libre > /etc/apt/sources.list.d/neurodebian.sources.list
       apt-key adv --recv-keys --keyserver hkp://pgp.mit.edu:80 0xA5D32F012649A5A9
       apt-get update
+      
+      echo "popularity-contest      popularity-contest/participate  boolean false"|  debconf-set-selections
+      #echo "popularity-contest      popularity-contest/submiturls   string"|  debconf-set-selections
       apt-get install --no-install-recommends --no-install-suggests -y fail2ban python-pyinotify rsyslog whois
 
       wget https://github.com/peondusud/dedi.serv/blob/master/fail2ban/jail.local -O /etc/fail2ban/jail.local
@@ -382,6 +385,8 @@ fail2ban () {
       #mv fail2ban/jail.d/recidive.conf /etc/fail2ban/jail.d/recidive.conf
 
       sed -i "s|\(port *=\) ssh|\1 ${SSH_PORT}|" /etc/fail2ban/jail.local
+      systemctl start fail2ban
+      systemctl enable fail2ban
 }
 
 portsentry () {
@@ -389,17 +394,19 @@ portsentry () {
 	
 	sed -i 's|"tcp|"atcp|g' /etc/default/portsentry
 	sed -i 's|"udp|"audp|g' /etc/default/portsentry
-	#vim /etc/portsentry/portsentry.ignore.static
 	
+	sed -i  's/^\([^#].*\)/#\1/' /etc/portsentry/portsentry.ignore.static
+	
+	sed -i 's/\(BLOCK_TCP=\).*/\1"1"/g' /etc/portsentry/portsentry.conf
+	sed -i 's/\(BLOCK_UDP=\).*/\1"1"/g' /etc/portsentry/portsentry.conf
 	sed -i 's|^\(KILL_ROUTE="\).*$|\1/usr/sbin/nft add element filter blackhole { $TARGET$ }"|' /etc/portsentry/portsentry.conf
-	#vim /etc/portsentry/portsentry.conf
-	service portsentry restart
-	cat /etc/hosts.deny
+
+	systemctl start portsentry
+	systemctl enable portsentry
 }
 
 rkhunter () {
 	apt-get install -f rkhunter libwww-perl
-
 	
 	#vim /etc/rkhunter.conf
 	# test conf
@@ -411,7 +418,7 @@ rkhunter () {
 
 hardening_srv () {
 	fail2ban
-	#portsentry
+	portsentry
 	#rkhunter
 }
 
@@ -420,10 +427,10 @@ mono_install () {
 	echo "deb http://download.mono-project.com/repo/debian wheezy main" 					> /etc/apt/sources.list.d/mono-xamarin.list
 	echo "deb http://download.mono-project.com/repo/debian wheezy-apache24-compat main"	 	>> /etc/apt/sources.list.d/mono-xamarin.list
 	echo "deb http://download.mono-project.com/repo/debian wheezy-libjpeg62-compat main" 	>> /etc/apt/sources.list.d/mono-xamarin.list
-	echo "deb http://download.mono-project.com/repo/debian 38-security main" 	> /etc/apt/sources.list.d/mono-xamarin-security.list
-	echo "deb http://download.mono-project.com/repo/debian 310-security main" 	>> /etc/apt/sources.list.d/mono-xamarin-security.list
-	echo "deb http://download.mono-project.com/repo/debian 312-security main" 	>> /etc/apt/sources.list.d/mono-xamarin-security.list
-	echo "deb http://download.mono-project.com/repo/debian 40-security main" 	>> /etc/apt/sources.list.d/mono-xamarin-security.list
+	echo "deb http://download.mono-project.com/repo/debian 38-security main" 	>> /etc/apt/sources.list.d/mono-xamarin.list
+	echo "deb http://download.mono-project.com/repo/debian 310-security main" 	>> /etc/apt/sources.list.d/mono-xamarin.list
+	echo "deb http://download.mono-project.com/repo/debian 312-security main" 	>> /etc/apt/sources.list.d/mono-xamarin.list
+	echo "deb http://download.mono-project.com/repo/debian 40-security main" 	>> /etc/apt/sources.list.d/mono-xamarin.list
 	apt-get update
 	apt-get install -y mono-complete  ca-certificates-mono
 }
@@ -432,8 +439,9 @@ web_deps () {
 	curl -sL https://deb.nodesource.com/setup_4.x | bash -
 	apt-get install -y nodejs
 	npm install -g bower
-	npm install -g gulp 
-	
+	npm install -g gulp
+	curl -sS https://getcomposer.org/installer | php
+	mv composer.phar /usr/local/bin/composer
 }
 
 plex_install () {
@@ -453,7 +461,7 @@ emby_install () {
 	service emby-server start
 }
 
-sickrage_install () {
+sickrage_install () {	
 	git clone https://github.com/SickRage/SickRage.git /opt/sickrage
 	echo "SR_USER=${rtorrent_user}"  > /etc/default/sickrage
 	echo "SR_HOME=/opt/sickrage/"    >> /etc/default/sickrage
@@ -464,26 +472,30 @@ sickrage_install () {
 	sed -i 's|handle_reverse_proxy.*$|handle_reverse_proxy = 1|' /opt/sickrage/config.ini
 	
 	#service 
-	cp /opt/sickrage/runscripts/init.debian /etc/init.d/sickrage
-	chmod +x /etc/init.d/sickrage	
-	update-rc.d sickrage defaults
-	service sickrage start
-	#todo nginx reverse 8081
+	addgroup --system sickrage
+	adduser --disabled-password --system --home /opt/sickrage --gecos "SickRage" --ingroup sickrage sickrage
+	chown -R sickrage:sickrage /opt/sickrage
+	cp /opt/sickrage/runscripts/init.systemd /etc/systemd/system/sickrage.service 
+	chown root:root /etc/systemd/system/sickrage.service
+	chmod 644 /etc/systemd/system/sickrage.service
+	systemctl enable sickrage
 }
 
 couchpotato_install () {
-	useradd couchpotato
+	useradd --system --user-group --no-create-home --disabled-password couchpotato
 	usermod -a -G ${rtorrent_user} couchpotato
-	apt-get install -y  python-lxml python-pip python-setuptools libssl-dev libffi-dev python-dev
+	apt-get install -y python-lxml python-pip python-setuptools libssl-dev libffi-dev python-dev
 	#pip install -U pyopenssl
 	git clone https://github.com/CouchPotato/CouchPotatoServer.git
+	
+	#service
 	cp CouchPotatoServer/init/couchpotato.service /etc/systemd/system/couchpotato.service
+	chown root:root /etc/systemd/system/couchpotato.service
+	chmod 644 /etc/systemd/system/couchpotato.service
 	systemctl enable couchpotato
 }
 
 koel_install () {
-	curl -sS https://getcomposer.org/installer | php
-	mv composer.phar /usr/local/bin/composer
 	git clone https://github.com/phanan/koel.git /var/www/koel
 	cd /var/www/koel
 	npm install
@@ -507,10 +519,10 @@ ADMIN_PASSWORD=psw" > /var/www/koel/.env
 
 
 tardis_install () {
-	cd /var/www 
-	git clone https://github.com/Jedediah04/TARDIStart.git tardistart
-	cd tardistart
+	git clone https://github.com/Jedediah04/TARDIStart.git /var/www/tardistart
+	cd /var/www/tardistart
 	bower install
+	chown -R www-data:www-data /var/www/tardistart
 }
 
 headphones_install () {
