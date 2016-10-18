@@ -27,7 +27,6 @@ settings_warning () {
 install_req () {
       apt-get update
       apt-get -y dist-upgrade
-
       apt-get install -y htop curl unzip git subversion nano vim zsh 
       apt-get remove -y bind9
       #apt-get --purge autoremove 
@@ -45,7 +44,6 @@ new_user_config () {
 }
 
 ssh_config () {
-
       echo "setting SSH config"
       #ssh server conf
       sed -i "s|\(Port\).*$|\1 ${SSH_PORT}|" /etc/ssh/sshd_config
@@ -62,16 +60,12 @@ ssh_config () {
       systemctl restart ssh.service
 }
 
-
 sysctl_config () {
-      wget https://raw.githubusercontent.com/peondusud/dedi.serv/master/sysctl.d/local.conf -O /etc/sysctl.d/local.conf
-      #mv sysctl.d/local.conf  /etc/sysctl.d/local.conf
-
+      mv sysctl.d/local.conf  /etc/sysctl.d/local.conf
       # reload sysctl
       echo "reload sysctl config"
       sysctl --system
 }
-
 
 nftables_config () {
 	find /etc/apt/ -name *.list | xargs cat | grep  ^[[:space:]]*deb | grep -v deb-src | grep "jessie-backports main"
@@ -92,8 +86,7 @@ nftables_config () {
 	# display full rules
 	nft list ruleset
 
-	wget https://raw.githubusercontent.com/peondusud/dedi.serv/master/fail2ban/action.d/nftables-common.local -O /etc/fail2ban/action.d/nftables-common.local
-	#mv fail2ban/action.d/nftables-common.local /etc/fail2ban/action.d/nftables-common.local
+	mv fail2ban/action.d/nftables-common.local /etc/fail2ban/action.d/nftables-common.local
 
 	## check is xt_LOG module exists
 	grep xt_LOG /lib/modules/$(uname -r)/modules.dep
@@ -103,62 +96,78 @@ nftables_config () {
 	modprobe xt_LOG nfnetlink_log
 	# xt_LOG is aliased to ipt_LOG and ip6t_LOG
 
-      ## check netfilter log config
-      cat /proc/net/netfilter/nf_log  
-      ## 2=IPv4, 4=Novell IPX, 10=IPv6, ...
-      #define AF_UNSPEC	  0
-      #define AF_UNIX		  1	/* Unix domain sockets 		*/
-      #define AF_INET		  2	/* Internet IP Protocol 	*/
-      #define AF_AX25		  3	/* Amateur Radio AX.25 		*/
-      #define AF_IPX		  4	/* Novell IPX 			*/
-      #define AF_APPLETALK  5	/* Appletalk DDP 		*/
-      #define AF_NETROM	  6	/* Amateur radio NetROM 	*/
-      #define AF_BRIDGE     7	/* Multiprotocol bridge 	*/
-      #define AF_AAL5		  8	/* Reserved for Werner's ATM 	*/
-      #define AF_X25		  9	/* Reserved for X.25 project 	*/
-      #define AF_INET6     10	/* IP version 6			*/
-      #define AF_MAX       12	/* For now.. */
+	## check netfilter log config
+	cat /proc/net/netfilter/nf_log  
+	## 2=IPv4, 4=Novell IPX, 10=IPv6, ...
+	#define AF_UNSPEC	  0
+	#define AF_UNIX		  1	/* Unix domain sockets 		*/
+	#define AF_INET		  2	/* Internet IP Protocol 	*/
+	#define AF_AX25		  3	/* Amateur Radio AX.25 		*/
+	#define AF_IPX		  4	/* Novell IPX 			*/
+	#define AF_APPLETALK  5	/* Appletalk DDP 		*/
+	#define AF_NETROM	  6	/* Amateur radio NetROM 	*/
+	#define AF_BRIDGE     7	/* Multiprotocol bridge 	*/
+	#define AF_AAL5		  8	/* Reserved for Werner's ATM 	*/
+	#define AF_X25		  9	/* Reserved for X.25 project 	*/
+	#define AF_INET6     10	/* IP version 6			*/
+	#define AF_MAX       12	/* For now.. */
 
-      # use ipt_LOG for IPv4
-      #echo "ipt_LOG" > /proc/sys/net/netfilter/nf_log/2
+	# use ipt_LOG for IPv4
+	#echo "ipt_LOG" > /proc/sys/net/netfilter/nf_log/2
+	echo "nfnetlink_log" > /proc/sys/net/netfilter/nf_log/2
+	#echo "255" > /proc/sys/net/netfilter/nf_conntrack_log_invalid
+	# Ulogd setup
+	# use syslog
+	#sed -i "s|^#\(.*log3.*SYSLOG\)|\1|" /etc/ulogd.conf      
 
-      echo "nfnetlink_log" > /proc/sys/net/netfilter/nf_log/2
-      #echo "255" > /proc/sys/net/netfilter/nf_conntrack_log_invalid
+	#torrent rule
+	nft  insert rule  filter input iif eth0 tcp dport { 50000 } accept
+	
+	mv systemd/system/nftables.service /etc/systemd/system/nftables.service
+	# let systemd know there is a new service
+	systemctl daemon-reload
+	# enable netdata at boot
+	systemctl enable nftables
+	# start netdata
+	service nftables start     
+}
 
-      # Ulogd setup
-      # use syslog
-      #sed -i "s|^#\(.*log3.*SYSLOG\)|\1|" /etc/ulogd.conf
-      
-      
-      nft  insert rule  filter input iif eth0 tcp dport { 50000} accept
+cron_apt_config () {
+	apt-get install -y cron-apt
+	echo 'APTCOMMAND=/usr/bin/apt-get' 	> /etc/cron-apt/config
+	echo 'MAILTO="root"' 				>> /etc/cron-apt/config
+	echo 'OPTIONS="-o quiet=1 -o Dir::Etc::SourceList=/etc/apt/sources.list.d/security.list"' >> /etc/cron-apt/config
+
+	echo 'deb http://httpredir.debian.org/debian jessie-updates main contrib non-free' > /etc/apt/sources.list.d/security.list
+	
+	echo 'dist-upgrade -y -o APT::Get::Show-Upgraded=true' > /etc/cron-apt/action.d/5-install	
 }
 
 
-
 docker_install () {
-      apt-get install -y apt-transport-https ca-certificates
-      apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
-      echo "deb https://apt.dockerproject.org/repo debian-jessie main" > /etc/apt/sources.list.d/docker.list
-      apt-get update
-      apt-get install -y docker-engine
-      sudo groupadd docker
-      gpasswd -a ${USERNAME} docker
-      service docker restart
-      docker pull debian:jessie
-      docker pull alpine:latest
-
-      # docker compose
-      curl -L https://github.com/docker/compose/releases/download/1.8.0/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
-      chmod +x /usr/local/bin/docker-compose
+	apt-get install -y apt-transport-https ca-certificates
+	apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
+	echo "deb https://apt.dockerproject.org/repo debian-jessie main" > /etc/apt/sources.list.d/docker.list
+	apt-get update
+	apt-get install -y docker-engine
+	sudo groupadd docker
+	gpasswd -a ${USERNAME} docker
+	service docker restart
+	docker pull debian:jessie
+	docker pull alpine:latest
+	# docker compose
+	curl -L https://github.com/docker/compose/releases/download/1.8.1/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+	chmod +x /usr/local/bin/docker-compose
 }
 
 
 install_basics () {
-      install_req
-      new_user_config
-      ssh_config
-      sysctl_config
-      nftables_config
+	install_req
+	new_user_config
+	ssh_config
+	sysctl_config
+	nftables_config
+	cron_apt_config
 }
 
 add_repo () {
@@ -166,21 +175,20 @@ add_repo () {
 
 	find /etc/apt/ -name *.list | xargs cat | grep  ^[[:space:]]*deb | grep -v deb-src | grep "nginx.org/packages/debian/ jessie nginx"
 	if [[ $? -eq 1 ]] ; then
-		echo -e "\n#Depot Nginx\ndeb http://nginx.org/packages/debian/ jessie nginx" >> /etc/apt/sources.list
+		echo -e "\n#Depot Nginx\ndeb http://nginx.org/packages/debian/ jessie nginx" > /etc/apt/sources.list.d/nginx.list
 	fi
 	find /etc/apt/ -name *.list | xargs cat | grep  ^[[:space:]]*deb | grep -v deb-src | grep "packages.dotdeb.org jessie all"
 	if [[ $? -eq 1 ]] ; then
-		echo -e "\n#Depot Dotdeb\ndeb http://packages.dotdeb.org jessie all" >> /etc/apt/sources.list
+		echo -e "\n#Depot Dotdeb\ndeb http://packages.dotdeb.org jessie all" > /etc/apt/sources.list.d/dotdeb.list
 	fi
 	find /etc/apt/ -name *.list | xargs cat | grep  ^[[:space:]]*deb | grep -v deb-src | grep "www.deb-multimedia.org jessie main non-free"
 	if [[ $? -eq 1 ]] ; then
-		echo -e "\n#Depot Multimedia\ndeb http://www.deb-multimedia.org jessie main non-free" >> /etc/apt/sources.list
+		echo -e "\n#Depot Multimedia\ndeb http://www.deb-multimedia.org jessie main non-free" >> /etc/apt/sources.list.d/multimedia.list
 	fi
 	find /etc/apt/ -name *.list | xargs cat | grep  ^[[:space:]]*deb | grep -v deb-src | grep "jessie-backports main contrib non-free"
 	if [[ $? -eq 1 ]] ; then	
 	echo "deb http://httpredir.debian.org/debian jessie-backports main contrib non-free" >> /etc/apt/sources.list
 	fi
-	
 
 	curl -s http://www.dotdeb.org/dotdeb.gpg | apt-key add -
 	apt-key adv --keyserver hkp://pgp.mit.edu:80 --recv-keys 573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62
@@ -188,16 +196,16 @@ add_repo () {
 	apt-get update
 	apt-get install -y --force-yes deb-multimedia-keyring
 	apt-get update
-	}
+}
 
 xmlrpc_build () {
-      cd /tmp
-      svn checkout http://svn.code.sf.net/p/xmlrpc-c/code/stable xmlrpc-c
-      cd xmlrpc-c/
-      ./configure --disable-cplusplus
-      make -j$(nproc)
-      make install
-      ldconfig
+	cd /tmp
+	svn checkout http://svn.code.sf.net/p/xmlrpc-c/code/stable xmlrpc-c
+	cd xmlrpc-c/
+	./configure --disable-cplusplus
+	make -j$(nproc)
+	make install
+	ldconfig
 }
 
 libtorrent_build () {
@@ -239,13 +247,11 @@ rtorrent_config () {
 
 rutorrent_install () {
 	mkdir -p /var/www
-	cd /var/www
-	git clone https://github.com/Novik/ruTorrent.git rutorrent
+	git clone https://github.com/Novik/ruTorrent.git /var/www/rutorrent
 	cp /var/www/rutorrent/images/favicon.ico /var/www/rutorrent/
+	git clone https://github.com/xombiemp/rutorrentMobile.git /var/www/rutorrent/plugins/mobile
+	git clone https://github.com/nelu/rutorrent-thirdparty-plugins /var/www/rutorrent/plugins/rutorrent-thirdparty-plugins
 	cd /var/www/rutorrent/plugins/
-	git clone https://github.com/xombiemp/rutorrentMobile.git mobile
-	cd /var/www/rutorrent/plugins/
-	git clone https://github.com/nelu/rutorrent-thirdparty-plugins
 	mv rutorrent-thirdparty-plugins/* .
 	rm -rf rutorrent-thirdparty-plugins	
 	chown -R www-data:www-data /var/www/rutorrent
@@ -259,7 +265,7 @@ rutorrent_conf () {
 	sed -i "s|\(\"id\".*\)'',|\1'$(which id)',|" /var/www/rutorrent/conf/config.php
 	sed -i "s|\(\"stat\".*\)'',|\1'$(which stat)',|" /var/www/rutorrent/conf/config.php
 
-	wget https://raw.githubusercontent.com/peondusud/dedi.serv/master/rutorrent/conf/plugins.ini -O /var/www/rutorrent/conf/plugins.ini
+	cp rutorrent/conf/plugins.ini /var/www/rutorrent/conf/plugins.ini
 
 	sed -i 's|false|"buildtorrent"|' /var/www/rutorrent/plugins/create/conf.php
 
@@ -312,26 +318,25 @@ letencrypt_conf () {
 	mkdir -p /var/www/letsencrypt
 	mkdir -p /etc/letsencrypt/configs
 	mkdir -p /var/log/letsencrypt
-	wget https://raw.githubusercontent.com/peondusud/dedi.serv/master/letsencrypt/letsencrypt.ini -O /etc/letsencrypt/configs/${MYDOMAIN}.conf
-	sed -i "s|<domain>|${MYDOMAIN}|" /etc/letsencrypt/configs/${MYDOMAIN}.conf
-	sed -i "s|<mail>|${MYMAIL}|" /etc/letsencrypt/configs/${MYDOMAIN}.conf
-	sed -i "s|<domain>|${MYDOMAIN}|" /etc/nginx/sites-available/rutorrent.conf
+	cp letsencrypt/letsencrypt.ini /etc/letsencrypt/configs/${MYDOMAIN}.conf
+	sed -i "s|<domain>|${MYDOMAIN}|" 	/etc/letsencrypt/configs/${MYDOMAIN}.conf
+	sed -i "s|<mail>|${MYMAIL}|" 		/etc/letsencrypt/configs/${MYDOMAIN}.conf
 
-	wget https://raw.githubusercontent.com/peondusud/dedi.serv/master/nginx/sites-available/letsencrypt.conf -O /etc/nginx/sites-available/letsencrypt.conf
+	#renew cron.monthly task
+	cp cron.monthly/renew_certs /etc/cron.monthly/renew_certs
+	
+	cp nginx/sites-available/letsencrypt.conf  /etc/nginx/sites-available/letsencrypt.conf	
+	
+	unlink /etc/nginx/sites-enabled/*
 	ln -s /etc/nginx/sites-available/letsencrypt.conf /etc/nginx/sites-enabled/letsencrypt.conf
 	service nginx reload
-	
-	#renew cron.monthly task
-	echo '#!/bin/sh\nln -s /etc/nginx/sites-available/letsencrypt.conf /etc/nginx/sites-enabled/letsencrypt.conf\n/opt/letsencrypt/letsencrypt-auto renew >> /var/log/letsencrypt/renew.log\nservice nginx reload' > /etc/cron.monthly/renew_certs
-
 	# generate certs
 	/opt/letsencrypt/letsencrypt-auto certonly --config /etc/letsencrypt/configs/${MYDOMAIN}.conf
 	echo "Let's encrypt Certs will be save in /etc/letsencrypt/live/"
-
+	unlink /etc/nginx/sites-enabled/letsencrypt.conf
 	# enable nginx ssl
-	ln -s /etc/nginx/sites-available/rutorrent.conf /etc/nginx/sites-enabled/rutorrent.conf
-	service nginx reload
-
+	ln -s /etc/nginx/sites-available/web.conf /etc/nginx/sites-enabled/web.conf
+	service nginx restart
 }
 
 php7_conf () {
@@ -340,20 +345,16 @@ php7_conf () {
 	systemctl restart php7.0-fpm.service
 }
 
-
-
 install_torrent () {
 	add_repo	
 	apt-get install  --no-install-suggests -y ${BUILD_DEPS} ${NGINX_DEPS} ${TORRENT_DEPS}
 	type -P xmlrpc-c-config >/dev/null 2>&1
 	if [ $? -eq 1 ]; then
 		xmlrpc_build
-	fi
-	
+	fi	
 	if ! [ -e /usr/local/lib/libtorrent.so ]; then	
 		libtorrent_build
-	fi
-	
+	fi	
 	type -P rtorrent >/dev/null 2>&1
 	if [ $? -eq 1 ]; then
 		rtorrent_build
@@ -368,83 +369,28 @@ install_torrent () {
 	letencrypt_conf
 }
 
-fail2ban () {
-      # based on https://wiki.meurisse.org/wiki/Fail2Ban
-      wget -O- http://neuro.debian.net/lists/jessie.de-m.libre > /etc/apt/sources.list.d/neurodebian.sources.list
-      apt-key adv --recv-keys --keyserver hkp://pgp.mit.edu:80 0xA5D32F012649A5A9
-      apt-get update
-      
-      echo "popularity-contest      popularity-contest/participate  boolean false"|  debconf-set-selections
-      #echo "popularity-contest      popularity-contest/submiturls   string"|  debconf-set-selections
-      apt-get install --no-install-recommends --no-install-suggests -y fail2ban python-pyinotify rsyslog whois
-
-      wget https://github.com/peondusud/dedi.serv/blob/master/fail2ban/jail.local -O /etc/fail2ban/jail.local
-      #mv fail2ban/jail.local /etc/fail2ban/jail.local
-
-      wget https://github.com/peondusud/dedi.serv/blob/master/fail2ban/jail.d/recidive.conf -O /etc/fail2ban/jail.d/recidive.conf
-      #mv fail2ban/jail.d/recidive.conf /etc/fail2ban/jail.d/recidive.conf
-
-      sed -i "s|\(port *=\) ssh|\1 ${SSH_PORT}|" /etc/fail2ban/jail.local
-      systemctl start fail2ban
-      systemctl enable fail2ban
-}
-
-portsentry () {
-	apt-get install portsentry
-	
-	sed -i 's|"tcp|"atcp|g' /etc/default/portsentry
-	sed -i 's|"udp|"audp|g' /etc/default/portsentry
-	
-	sed -i  's/^\([^#].*\)/#\1/' /etc/portsentry/portsentry.ignore.static
-	
-	sed -i 's/\(BLOCK_TCP=\).*/\1"1"/g' /etc/portsentry/portsentry.conf
-	sed -i 's/\(BLOCK_UDP=\).*/\1"1"/g' /etc/portsentry/portsentry.conf
-	sed -i 's|^\(KILL_ROUTE="\).*$|\1/usr/sbin/nft add element filter blackhole { $TARGET$ }"|' /etc/portsentry/portsentry.conf
-
-	systemctl start portsentry
-	systemctl enable portsentry
-}
-
-rkhunter () {
-	apt-get install -f rkhunter libwww-perl
-	
-	#vim /etc/rkhunter.conf
-	# test conf
-	rkhunter -c --sk
-	# update
-	rkhunter --propupd
-	echo 'DPkg::Post-Invoke { "if [ -x /usr/bin/rkhunter ]; then /usr/bin/rkhunter --propupd; fi"; };' > /etc/apt/apt.conf.d/90rkhunter
-}
-
-hardening_srv () {
-	fail2ban
-	portsentry
-	#rkhunter
-	#disable ipv6 support
-	sed -i 's|\(GRUB_CMDLINE_LINUX=\)""|\1"ipv6.disable=1"|' /etc/default/grub
-	update-grub2	
-}
 
 mono_install () {
 	sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
-	echo "deb http://download.mono-project.com/repo/debian wheezy main" 					> /etc/apt/sources.list.d/mono-xamarin.list
-	echo "deb http://download.mono-project.com/repo/debian wheezy-apache24-compat main"	 	>> /etc/apt/sources.list.d/mono-xamarin.list
-	echo "deb http://download.mono-project.com/repo/debian wheezy-libjpeg62-compat main" 	>> /etc/apt/sources.list.d/mono-xamarin.list
-	echo "deb http://download.mono-project.com/repo/debian 38-security main" 	>> /etc/apt/sources.list.d/mono-xamarin.list
-	echo "deb http://download.mono-project.com/repo/debian 310-security main" 	>> /etc/apt/sources.list.d/mono-xamarin.list
-	echo "deb http://download.mono-project.com/repo/debian 312-security main" 	>> /etc/apt/sources.list.d/mono-xamarin.list
-	echo "deb http://download.mono-project.com/repo/debian 40-security main" 	>> /etc/apt/sources.list.d/mono-xamarin.list
+	echo "deb http://download.mono-project.com/repo/debian wheezy main" 					> /etc/apt/sources.list.d/mono.list
+	echo "deb http://download.mono-project.com/repo/debian wheezy-apache24-compat main"	 	>> /etc/apt/sources.list.d/mono.list
+	echo "deb http://download.mono-project.com/repo/debian wheezy-libjpeg62-compat main" 	>> /etc/apt/sources.list.d/mono.list
+	echo "deb http://download.mono-project.com/repo/debian 38-security main" 	>> /etc/apt/sources.list.d/mono.list
+	echo "deb http://download.mono-project.com/repo/debian 310-security main" 	>> /etc/apt/sources.list.d/mono.list
+	echo "deb http://download.mono-project.com/repo/debian 312-security main" 	>> /etc/apt/sources.list.d/mono.list
+	echo "deb http://download.mono-project.com/repo/debian 40-security main" 	>> /etc/apt/sources.list.d/mono.list
 	apt-get update
-	apt-get install -y mono-complete  ca-certificates-mono
+	apt-get install -y mono-complete ca-certificates-mono
 }
 
-web_deps () {
+app_deps () {
 	curl -sL https://deb.nodesource.com/setup_4.x | bash -
 	apt-get install -y nodejs
 	npm install -g bower
 	npm install -g gulp
 	curl -sS https://getcomposer.org/installer | php
 	mv composer.phar /usr/local/bin/composer
+	mono_install
 }
 
 plex_install () {
@@ -526,7 +472,6 @@ ADMIN_PASSWORD=psw" > /var/www/koel/.env
 	service nginx restart	
 }
 
-
 tardis_install () {
 	git clone https://github.com/Jedediah04/TARDIStart.git /var/www/tardistart
 	cd /var/www/tardistart
@@ -589,9 +534,10 @@ netdata_install () {
 	apt-get  install -y  zlib1g-dev uuid-dev libmnl-dev gcc make git autoconf autoconf-archive autogen automake pkg-config curl  python-yaml python-mysqldb python-psycopg2 netcat
 	git clone --depth=1 https://github.com/firehol/netdata.git /tmp/netdata
 	cd /tmp/netdata;
-	./netdata-installer.sh  --dont-wait --libs-are-really-here
-	
-	killall netdata
+	./netdata-installer.sh  --dont-wait --libs-are-really-here	
+	killall netdata	
+	# remove external call (registry.my-netdata.io)
+	sed -i "s|registry.my-netdata.io|${MYDOMAIN}/netdata|" /etc/netdata/netdata.conf
 	/tmp/netdata/system/netdata.service /etc/systemd/system/
 	# let systemd know there is a new service
 	systemctl daemon-reload
@@ -612,8 +558,23 @@ syncthing_install () {
 	sudo apt-get install syncthing
 }
 
+apps () {
+	plex_install
+	emby_install
+	sickrage_install
+	couchpotato_install
+	headphones_install
+	tardis_install
+	sonarr_install
+	jackett_install
+	netdata_install
+	syncthing_install
+}
+
 settings_warning
 install_basics
+hardening.sh
 #docker_config
 install_torrent
-hardening_srv
+app_deps
+apps
