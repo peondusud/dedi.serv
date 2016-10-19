@@ -373,8 +373,8 @@ install_torrent () {
 
 settings_warning
 install_basics
-$DIR/hardening.sh
+bash -x $DIR/hardening.sh
 #docker_config
 install_torrent
-$DIR/apps.sh
+bash -x $DIR/apps.sh
 
