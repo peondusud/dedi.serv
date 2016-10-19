@@ -20,6 +20,7 @@ define ext_if    = eth0
 define ssh_port = { ${SSH_PORT} }
 define tcp_ports = { ssh, http, https }
 define torrent_port = { 50000 }
+#nft  insert rule  filter input iif eth0 tcp dport { 50000 } accept
 
 # # https://docs.ovh.com/pages/releaseview.action?pageId=9928706
 define ovh_icmp_check = {
