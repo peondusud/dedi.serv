@@ -10,7 +10,8 @@ SHELL_PATH=$(dirname $0)
 set -euf -o pipefail
 
 
-git clone https://github.com/peondusud/dedi.serv.git /tmp/dedi.serv
+rm -rf  /tmp/dedi.serv
+git clone https://github.com/peondusud/dedi.serv.git /tmp/dedi.serv 
 
 
 BUILD_DEPS="git subversion automake libtool libcppunit-dev build-essential pkg-config libssl-dev libcurl4-openssl-dev libsigc++-2.0-dev libncurses5-dev"
