@@ -20,8 +20,10 @@ app_deps () {
 	apt-get install -y nodejs
 	npm install -g bower
 	npm install -g gulp
-	curl -sS https://getcomposer.org/installer | php
-	mv composer.phar /usr/local/bin/composer
+	if ! [ -f "/usr/local/bin/composer" ] ; then
+		curl -sS https://getcomposer.org/installer | php
+		mv composer.phar /usr/local/bin/composer
+	fi
 	mono_install
 }
 
