@@ -238,6 +238,7 @@ rtorrent_config () {
 
 rutorrent_install () {
 	mkdir -p /var/www
+	rm -rf /var/www/rutorrent
 	git clone https://github.com/Novik/ruTorrent.git /var/www/rutorrent
 	cp /var/www/rutorrent/images/favicon.ico /var/www/rutorrent/
 	git clone https://github.com/xombiemp/rutorrentMobile.git /var/www/rutorrent/plugins/mobile
@@ -302,7 +303,7 @@ letencrypt_conf () {
 	MYMAIL=webmaster@${MYDOMAIN}
 	
 	apt-get install git
-	git clone https://github.com/letsencrypt/letsencrypt /opt/letsencrypt --depth=1	
+	git clone https://github.com/letsencrypt/letsencrypt /opt/letsencrypt --depth=1	|| true
 	mkdir -p /etc/letsencrypt/configs
 	mkdir -p /var/www/letsencrypt
 	mkdir -p /var/log/letsencrypt
