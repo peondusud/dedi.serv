@@ -3,7 +3,7 @@
 USERNAME="peon"
 SSH_PORT=22222
 MYDOMAIN=peon.peon.org
-DIR=/tmp/dedi.serv/
+DIR=/tmp/dedi.serv
 
 SHELL_PATH=$(dirname $0)
 
