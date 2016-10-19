@@ -73,8 +73,9 @@ sysctl_config () {
 
 nftables_config () {
 	find /etc/apt/ -name *.list | xargs cat | grep  ^[[:space:]]*deb | grep -v deb-src | grep "jessie-backports main"
-	if [[ $? -eq 0 ]] ; then
+	if ! [ $? -eq 0 ] ; then
 		echo "deb http://ftp.debian.org/debian jessie-backports main" >> /etc/apt/sources.list
+		#echo "deb http://httpredir.debian.org/debian jessie-backports main" >> /etc/apt/sources.list
 	fi
 	apt-get update
 	apt-get install -y nftables ulogd2 ulogd2-sqlite3 ulogd2-pcap ulogd2-json
