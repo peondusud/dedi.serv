@@ -176,23 +176,10 @@ install_basics () {
 
 add_repo () {
 	sed -ri 's/main$/main contrib non-free/g' /etc/apt/sources.list
-
-	find /etc/apt/ -name *.list | xargs cat | grep  ^[[:space:]]*deb | grep -v deb-src | grep "nginx.org/packages/debian/ jessie nginx"
-	if [[ $? -eq 1 ]] ; then
-		echo -e "\n#Depot Nginx\ndeb http://nginx.org/packages/debian/ jessie nginx" > /etc/apt/sources.list.d/nginx.list
-	fi
-	find /etc/apt/ -name *.list | xargs cat | grep  ^[[:space:]]*deb | grep -v deb-src | grep "packages.dotdeb.org jessie all"
-	if [[ $? -eq 1 ]] ; then
-		echo -e "\n#Depot Dotdeb\ndeb http://packages.dotdeb.org jessie all" > /etc/apt/sources.list.d/dotdeb.list
-	fi
-	find /etc/apt/ -name *.list | xargs cat | grep  ^[[:space:]]*deb | grep -v deb-src | grep "www.deb-multimedia.org jessie main non-free"
-	if [[ $? -eq 1 ]] ; then
-		echo -e "\n#Depot Multimedia\ndeb http://www.deb-multimedia.org jessie main non-free" >> /etc/apt/sources.list.d/multimedia.list
-	fi
-	find /etc/apt/ -name *.list | xargs cat | grep  ^[[:space:]]*deb | grep -v deb-src | grep "jessie-backports main contrib non-free"
-	if [[ $? -eq 1 ]] ; then	
+	echo -e "\n#Depot Nginx\ndeb http://nginx.org/packages/debian/ jessie nginx" > /etc/apt/sources.list.d/nginx.list
+	echo -e "\n#Depot Dotdeb\ndeb http://packages.dotdeb.org jessie all" > /etc/apt/sources.list.d/dotdeb.list
+	echo -e "\n#Depot Multimedia\ndeb http://www.deb-multimedia.org jessie main non-free" >> /etc/apt/sources.list.d/multimedia.list
 	echo "deb http://httpredir.debian.org/debian jessie-backports main contrib non-free" >> /etc/apt/sources.list
-	fi
 
 	curl -s http://www.dotdeb.org/dotdeb.gpg | apt-key add -
 	apt-key adv --keyserver hkp://pgp.mit.edu:80 --recv-keys 573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62
@@ -244,7 +231,7 @@ rtorrent_config () {
 	sed -i "s/<username>/${rtorrent_user}/g" /home/${rtorrent_user}/.rtorrent.rc
 	chown -R ${rtorrent_user}:${rtorrent_user} /home/${rtorrent_user}/{*,.*}
 	
-	wget https://raw.githubusercontent.com/peondusud/dedi.serv/master/systemd/system/rtorrent%40.service -O /etc/systemd/system/rtorrent\@.service
+	cp $DIR/systemd/system/rtorrent\@.service /etc/systemd/system/rtorrent\@.service
 	systemctl start rtorrent@${rtorrent_user}
 	systemctl enable rtorrent@${rtorrent_user}
 }
