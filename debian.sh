@@ -3,11 +3,15 @@
 USERNAME="peon"
 SSH_PORT=22222
 MYDOMAIN=peon.peon.org
-
-SHELL_PATH=$(dirname $0)
 DIR=/tmp/dedi.serv/
 
+SHELL_PATH=$(dirname $0)
+
 set -euf -o pipefail
+
+
+git clone https://github.com/peondusud/dedi.serv.git /tmp/dedi.serv
+
 
 BUILD_DEPS="git subversion automake libtool libcppunit-dev build-essential pkg-config libssl-dev libcurl4-openssl-dev libsigc++-2.0-dev libncurses5-dev"
 NGINX_DEPS="zlib1g-dev libpcre3 libpcre3-dev unzip apache2-utils php7.0 php7.0-cli php7.0-fpm php7.0-curl php7.0-geoip php7.0-xml php7.0-mbstring php7.0-zip php7.0-json php7.0-gd php7.0-mcrypt php7.0-msgpack php7.0-memcached php7.0-intl php7.0-sqlite3"
@@ -409,19 +413,22 @@ emby_install () {
 }
 
 sickrage_install () {
+	addgroup --system sickrage
+	adduser --disabled-password --system --home /opt/sickrage --gecos "SickRage" --ingroup sickrage sickrage
+	
 	git clone https://github.com/SickRage/SickRage.git /opt/sickrage
-	echo "SR_USER=${rtorrent_user}"  > /etc/default/sickrage
+	
+	chown -R sickrage:sickrage /opt/sickrage
+	echo "SR_USER=sickrage"  > /etc/default/sickrage	
+	echo "SR_GROUP=sickrage" >> /etc/default/sickrage
 	echo "SR_HOME=/opt/sickrage/"    >> /etc/default/sickrage
 	echo "SR_DATA=/opt/sickrage/"    >> /etc/default/sickrage
-	echo "SR_GROUP=${rtorrent_user}" >> /etc/default/sickrage
-	chown -R ${rtorrent_user}:${rtorrent_user} /opt/sickrage
+	
+	#base path for reverseproxy (nginx)
 	sed -i 's|web_root = ""|web_root = \"/sickrage\"|' /opt/sickrage/config.ini
 	sed -i 's|handle_reverse_proxy.*$|handle_reverse_proxy = 1|' /opt/sickrage/config.ini
 	
-	#service 
-	addgroup --system sickrage
-	adduser --disabled-password --system --home /opt/sickrage --gecos "SickRage" --ingroup sickrage sickrage
-	chown -R sickrage:sickrage /opt/sickrage
+	#service 	
 	cp /opt/sickrage/runscripts/init.systemd /etc/systemd/system/sickrage.service 
 	chown root:root /etc/systemd/system/sickrage.service
 	chmod 644 /etc/systemd/system/sickrage.service
@@ -520,6 +527,7 @@ jackett_install () {
 	sudo -u jackett mono --debug /opt/jackett/JackettConsole.exe -d /opt/jackett &
 	kill -9 $!
 	pkill -u jackett
+	#base path for reverseproxy (nginx)
 	sed -i 's|BasePathOverride": .*|BasePathOverride": "/jackett"|' /opt/jackett/ServerConfig.json
 	#todo download systemd service
 	cp $DIR/systemd/system/jackett.service /etc/systemd/system/jackett.service
@@ -568,6 +576,8 @@ apps () {
 	netdata_install
 	syncthing_install
 }
+
+
 
 settings_warning
 install_basics
