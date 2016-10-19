@@ -232,6 +232,7 @@ rtorrent_config () {
 	chown -R ${rtorrent_user}:${rtorrent_user} /home/${rtorrent_user}
 	
 	cp $DIR/systemd/system/rtorrent\@.service /etc/systemd/system/rtorrent\@.service
+	systemctl daemon-reload
 	systemctl start rtorrent@${rtorrent_user}
 	systemctl enable rtorrent@${rtorrent_user}
 }
