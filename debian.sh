@@ -5,6 +5,7 @@ SSH_PORT=22222
 MYDOMAIN=peon.peon.org
 
 SHELL_PATH=$(dirname $0)
+DIR=/tmp/dedi.serv/
 
 set -euf -o pipefail
 
@@ -61,7 +62,7 @@ ssh_config () {
 }
 
 sysctl_config () {
-      mv sysctl.d/local.conf  /etc/sysctl.d/local.conf
+      cp $DIR/sysctl.d/local.conf  /etc/sysctl.d/local.conf
       # reload sysctl
       echo "reload sysctl config"
       sysctl --system
@@ -77,7 +78,7 @@ nftables_config () {
 	#nft flush table filter
 
 	mkdir -p /etc/nftables
-	wget https://raw.githubusercontent.com/peondusud/dedi.serv/master/nftables/fw.ruleset -O /etc/nftables/fw.ruleset
+	cp $DIR/nftables/fw.ruleset -O /etc/nftables/fw.ruleset
 	sed -i "s|\${SSH_PORT}|${SSH_PORT}|" /etc/nftables/fw.ruleset
 
 	# load ruleset from file
@@ -86,7 +87,7 @@ nftables_config () {
 	# display full rules
 	nft list ruleset
 
-	mv fail2ban/action.d/nftables-common.local /etc/fail2ban/action.d/nftables-common.local
+	cp $DIR/fail2ban/action.d/nftables-common.local /etc/fail2ban/action.d/nftables-common.local
 
 	## check is xt_LOG module exists
 	grep xt_LOG /lib/modules/$(uname -r)/modules.dep
@@ -123,7 +124,7 @@ nftables_config () {
 	#torrent rule
 	nft  insert rule  filter input iif eth0 tcp dport { 50000 } accept
 	
-	mv systemd/system/nftables.service /etc/systemd/system/nftables.service
+	cp $DIR/systemd/system/nftables.service /etc/systemd/system/nftables.service
 	# let systemd know there is a new service
 	systemctl daemon-reload
 	# enable netdata at boot
@@ -250,10 +251,9 @@ rutorrent_install () {
 	git clone https://github.com/Novik/ruTorrent.git /var/www/rutorrent
 	cp /var/www/rutorrent/images/favicon.ico /var/www/rutorrent/
 	git clone https://github.com/xombiemp/rutorrentMobile.git /var/www/rutorrent/plugins/mobile
-	git clone https://github.com/nelu/rutorrent-thirdparty-plugins /var/www/rutorrent/plugins/rutorrent-thirdparty-plugins
-	cd /var/www/rutorrent/plugins/
-	mv rutorrent-thirdparty-plugins/* .
-	rm -rf rutorrent-thirdparty-plugins	
+	git clone https://github.com/nelu/rutorrent-thirdparty-plugins /var/www/rutorrent/rutorrent-thirdparty-plugins
+	mv /var/www/rutorrent-thirdparty-plugins/* /var/www/rutorrent/plugins/
+	rm -rf /var/www/rutorrent/rutorrent-thirdparty-plugins
 	chown -R www-data:www-data /var/www/rutorrent
 }
 
@@ -265,7 +265,7 @@ rutorrent_conf () {
 	sed -i "s|\(\"id\".*\)'',|\1'$(which id)',|" /var/www/rutorrent/conf/config.php
 	sed -i "s|\(\"stat\".*\)'',|\1'$(which stat)',|" /var/www/rutorrent/conf/config.php
 
-	cp rutorrent/conf/plugins.ini /var/www/rutorrent/conf/plugins.ini
+	cp $DIR/rutorrent/conf/plugins.ini /var/www/rutorrent/conf/plugins.ini
 
 	sed -i 's|false|"buildtorrent"|' /var/www/rutorrent/plugins/create/conf.php
 
@@ -276,6 +276,7 @@ rutorrent_conf () {
 	sed -i "s|\(pathToExternals\['tar'\] = '\)';|\1$(which tar)';|"  /var/www/rutorrent/plugins/filemanager/conf.php
 	sed -i "s|\(pathToExternals\['gzip'\] = '\)';|\1$(which gzip)';|"  /var/www/rutorrent/plugins/filemanager/conf.php
 	sed -i "s|\(pathToExternals\['bzip2'\] = '\)';|\1$(which bzip2)';|"  /var/www/rutorrent/plugins/filemanager/conf.php
+	chown -R www-data:www-data /var/www/rutorrent
 }
 
 nginx_install () {
@@ -287,16 +288,13 @@ nginx_install () {
 nginx_conf () {
 	#add nginx to www-data group
 	usermod -a -G www-data nginx
-	wget https://github.com/peondusud/dedi.serv/archive/master.zip
-	unzip master.zip
-	cp -rv dedi.serv-master/nginx /etc/
-	rm -rf dedi.serv-master master.zip
-	mkdir -p /var/spool/nginx/client
+	cp -rv $DIR/nginx /etc/	
 	mkdir -p /etc/nginx/passwd
 	mkdir -p /etc/nginx/sites-enabled
+	mkdir -p /var/spool/nginx/client
 	htpasswd -s -c  /etc/nginx/passwd/rutorrent_passwd ${USERNAME}
 	chmod 640 /etc/nginx/passwd/*
-	chown --changes www-data:www-data /etc/nginx/passwd/*	
+	chown -R --changes www-data:www-data /etc/nginx/passwd/	
 	systemctl restart nginx.service
 }
 
@@ -314,18 +312,18 @@ letencrypt_conf () {
 	MYMAIL=webmaster@${MYDOMAIN}
 	
 	apt-get install git
-	git clone https://github.com/letsencrypt/letsencrypt /opt/letsencrypt --depth=1
-	mkdir -p /var/www/letsencrypt
+	git clone https://github.com/letsencrypt/letsencrypt /opt/letsencrypt --depth=1	
 	mkdir -p /etc/letsencrypt/configs
+	mkdir -p /var/www/letsencrypt
 	mkdir -p /var/log/letsencrypt
-	cp letsencrypt/letsencrypt.ini /etc/letsencrypt/configs/${MYDOMAIN}.conf
+	cp $DIR/letsencrypt/letsencrypt.ini /etc/letsencrypt/configs/${MYDOMAIN}.conf
 	sed -i "s|<domain>|${MYDOMAIN}|" 	/etc/letsencrypt/configs/${MYDOMAIN}.conf
 	sed -i "s|<mail>|${MYMAIL}|" 		/etc/letsencrypt/configs/${MYDOMAIN}.conf
 
 	#renew cron.monthly task
-	cp cron.monthly/renew_certs /etc/cron.monthly/renew_certs
+	cp $DIR/cron.monthly/renew_certs /etc/cron.monthly/renew_certs
 	
-	cp nginx/sites-available/letsencrypt.conf  /etc/nginx/sites-available/letsencrypt.conf	
+	cp $DIR/nginx/sites-available/letsencrypt.conf  /etc/nginx/sites-available/letsencrypt.conf	
 	
 	unlink /etc/nginx/sites-enabled/*
 	ln -s /etc/nginx/sites-available/letsencrypt.conf /etc/nginx/sites-enabled/letsencrypt.conf
@@ -410,7 +408,7 @@ emby_install () {
 	service emby-server start
 }
 
-sickrage_install () {	
+sickrage_install () {
 	git clone https://github.com/SickRage/SickRage.git /opt/sickrage
 	echo "SR_USER=${rtorrent_user}"  > /etc/default/sickrage
 	echo "SR_HOME=/opt/sickrage/"    >> /etc/default/sickrage
@@ -438,10 +436,10 @@ couchpotato_install () {
 	usermod -a -G ${rtorrent_user} couchpotato
 	apt-get install -y python-lxml python-pip python-setuptools libssl-dev libffi-dev python-dev
 	#pip install -U pyopenssl
-	git clone https://github.com/CouchPotato/CouchPotatoServer.git
+	git clone https://github.com/CouchPotato/CouchPotatoServer.git /opt/couchpotato
 	
 	#service
-	cp CouchPotatoServer/init/couchpotato.service /etc/systemd/system/couchpotato.service
+	cp /opt/couchpotato/init/couchpotato.service /etc/systemd/system/couchpotato.service
 	chown root:root /etc/systemd/system/couchpotato.service
 	chmod 644 /etc/systemd/system/couchpotato.service
 	# let systemd know there is a new service
@@ -524,7 +522,7 @@ jackett_install () {
 	pkill -u jackett
 	sed -i 's|BasePathOverride": .*|BasePathOverride": "/jackett"|' /opt/jackett/ServerConfig.json
 	#todo download systemd service
-	cp dedi.serv/systemd/system/jackett.service /etc/systemd/system/jackett.service
+	cp $DIR/systemd/system/jackett.service /etc/systemd/system/jackett.service
 	systemctl daemon-reload
 	systemctl enable jackett
 	systemctl start jackett
@@ -538,7 +536,7 @@ netdata_install () {
 	killall netdata	
 	# remove external call (registry.my-netdata.io)
 	sed -i "s|registry.my-netdata.io|${MYDOMAIN}/netdata|" /etc/netdata/netdata.conf
-	/tmp/netdata/system/netdata.service /etc/systemd/system/
+	/tmp/netdata/system/netdata.service /etc/systemd/system/netdata.service
 	# let systemd know there is a new service
 	systemctl daemon-reload
 	# enable netdata at boot
