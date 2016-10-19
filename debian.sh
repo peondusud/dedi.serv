@@ -82,8 +82,8 @@ nftables_config () {
 	#nft flush table filter
 
 	mkdir -p /etc/nftables
-	cp $DIR/nftables/fw.ruleset -O /etc/nftables/fw.ruleset
-	sed -i "s|\${SSH_PORT}|${SSH_PORT}|" /etc/nftables/fw.ruleset
+	cp $DIR/nftables/fw.rules /etc/nftables/fw.rules
+	sed -i "s|\${SSH_PORT}|${SSH_PORT}|" /etc/nftables/fw.rules
 
 	# load ruleset from file
 	nft -f /etc/nftables/fw.ruleset
@@ -124,9 +124,6 @@ nftables_config () {
 	# Ulogd setup
 	# use syslog
 	#sed -i "s|^#\(.*log3.*SYSLOG\)|\1|" /etc/ulogd.conf      
-
-	#torrent rule
-	nft  insert rule  filter input iif eth0 tcp dport { 50000 } accept
 	
 	cp $DIR/systemd/system/nftables.service /etc/systemd/system/nftables.service
 	# let systemd know there is a new service
