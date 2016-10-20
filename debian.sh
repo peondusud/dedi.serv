@@ -276,8 +276,8 @@ rutorrent_conf () {
 
 nginx_install () {
 	# http2 nginx version
-	apt install -y nginx-extras/jessie-backports
-	apt install -y openssl/jessie-backports
+	apt-get install -y nginx-extras
+	apt-get install -y openssl -t jessie-backports
 }
 
 nginx_conf () {
