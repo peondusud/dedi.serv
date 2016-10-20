@@ -176,9 +176,13 @@ add_repo () {
 	sed -ri 's/main$/main contrib non-free/g' /etc/apt/sources.list
 	echo -e "\n#Depot Nginx\ndeb http://nginx.org/packages/debian/ jessie nginx" > /etc/apt/sources.list.d/nginx.list
 	echo -e "\n#Depot Dotdeb\ndeb http://packages.dotdeb.org jessie all" > /etc/apt/sources.list.d/dotdeb.list
-	echo -e "\n#Depot Multimedia\ndeb http://www.deb-multimedia.org jessie main non-free" >> /etc/apt/sources.list.d/multimedia.list
-	echo "deb http://httpredir.debian.org/debian jessie-backports main contrib non-free" >> /etc/apt/sources.list
-
+	echo -e "\n#Depot Multimedia\ndeb http://www.deb-multimedia.org jessie main non-free" > /etc/apt/sources.list.d/multimedia.list
+	find /etc/apt/ -name *.list | xargs cat | grep  ^[[:space:]]*deb | grep -v deb-src | grep "jessie-backports main"
+	if ! [ $? -eq 0 ] ; then
+		echo "deb http://ftp.debian.org/debian jessie-backports main" >> /etc/apt/sources.list
+		#echo "deb http://httpredir.debian.org/debian jessie-backports main" >> /etc/apt/sources.list
+	fi
+	
 	curl -s http://www.dotdeb.org/dotdeb.gpg | apt-key add -
 	apt-key adv --keyserver hkp://pgp.mit.edu:80 --recv-keys 573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62
 	#apt-key adv --keyserver keyserver.ubuntu.com --recv-keys $nginx_pubkey # remove NO_PUBKEY
