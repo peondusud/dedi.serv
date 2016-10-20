@@ -242,7 +242,7 @@ rutorrent_install () {
 	cp /var/www/rutorrent/images/favicon.ico /var/www/rutorrent/
 	git clone https://github.com/xombiemp/rutorrentMobile.git /var/www/rutorrent/plugins/mobile
 	git clone https://github.com/nelu/rutorrent-thirdparty-plugins /var/www/rutorrent/rutorrent-thirdparty-plugins
-	mv "/var/www/rutorrent/rutorrent-thirdparty-plugins/"* /var/www/rutorrent/plugins/
+	mv /var/www/rutorrent/rutorrent-thirdparty-plugins/ /var/www/rutorrent/plugins/
 	rm -rf /var/www/rutorrent/rutorrent-thirdparty-plugins
 	chown -R www-data:www-data /var/www/rutorrent
 }
