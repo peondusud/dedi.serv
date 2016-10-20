@@ -12,7 +12,7 @@ fail2ban () {
 
       cp $DIR/fail2ban/jail.local /etc/fail2ban/jail.local
 
-      cp $DIR/fail2ban/jail.d/recidive.conf -O /etc/fail2ban/jail.d/recidive.conf
+      cp $DIR/fail2ban/jail.d/recidive.conf /etc/fail2ban/jail.d/recidive.conf
 
       sed -i "s|\(port *=\) ssh|\1 ${SSH_PORT}|" /etc/fail2ban/jail.local
       systemctl start fail2ban
