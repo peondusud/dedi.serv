@@ -70,7 +70,7 @@ sysctl_config () {
 }
 
 nftables_config () {
-	ret=$(find /etc/apt/ -name *.list | xargs cat | grep  ^[[:space:]]*deb | grep -v deb-src | grep "jessie-backports main" | wc -l)
+	ret=$(find /etc/apt/ -name *.list | xargs cat | grep  ^[[:space:]]*deb | grep -v deb-src | grep "jessie-backports main" | wc -l) || true
 	if [ $ret -eq 0 ] ; then
 		#echo "deb http://ftp.debian.org/debian jessie-backports main" >> /etc/apt/sources.list
 		echo "deb http://httpredir.debian.org/debian jessie-backports main" >> /etc/apt/sources.list
