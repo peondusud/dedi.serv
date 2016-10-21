@@ -36,7 +36,8 @@ install_req () {
 
 new_user_config () {
       apt-get install -y sudo
-      if (( $(id -u user > /dev/null 2>&1; echo $?) == 0 )); then
+      ret=$(id -u ${USERNAME} > /dev/null 2>&1; echo $?) || true
+      if [ $ret -eq 1 ] ; then
             echo "Add new user: ${USERNAME}"
             useradd -ms /bin/zsh "${USERNAME}"
             passwd "${USERNAME}"
