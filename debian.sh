@@ -2,18 +2,13 @@
 
 USERNAME="peon"
 SSH_PORT=22222
-MYDOMAIN=peon.peon.org
+MYDOMAIN=peon.org
 DIR=/tmp/dedi.serv
 
 SHELL_PATH=$(dirname $0)
 
 set -euf -o pipefail
 
-rm -rf  /tmp/dedi.serv || true
-apt-get update 
-apt-get upgrade
-apt-get install git
-git clone https://github.com/peondusud/dedi.serv.git /tmp/dedi.serv 
 
 BUILD_DEPS="git subversion automake libtool libcppunit-dev build-essential pkg-config libssl-dev libcurl4-openssl-dev libsigc++-2.0-dev libncurses5-dev"
 NGINX_DEPS="zlib1g-dev libpcre3 libpcre3-dev unzip apache2-utils php7.0 php7.0-cli php7.0-fpm php7.0-curl php7.0-geoip php7.0-xml php7.0-mbstring php7.0-zip php7.0-json php7.0-gd php7.0-mcrypt php7.0-msgpack php7.0-memcached php7.0-intl php7.0-sqlite3"
@@ -75,10 +70,10 @@ sysctl_config () {
 }
 
 nftables_config () {
-	find /etc/apt/ -name *.list | xargs cat | grep  ^[[:space:]]*deb | grep -v deb-src | grep "jessie-backports main"
-	if ! [ $? -eq 0 ] ; then
-		echo "deb http://ftp.debian.org/debian jessie-backports main" >> /etc/apt/sources.list
-		#echo "deb http://httpredir.debian.org/debian jessie-backports main" >> /etc/apt/sources.list
+	ret=$(find /etc/apt/ -name *.list | xargs cat | grep  ^[[:space:]]*deb | grep -v deb-src | grep "jessie-backports main" | wc -l)
+	if [ $ret -eq 0 ] ; then
+		#echo "deb http://ftp.debian.org/debian jessie-backports main" >> /etc/apt/sources.list
+		echo "deb http://httpredir.debian.org/debian jessie-backports main" >> /etc/apt/sources.list
 	fi
 	apt-get update
 	apt-get install -y nftables ulogd2 ulogd2-sqlite3 ulogd2-pcap ulogd2-json
@@ -89,7 +84,7 @@ nftables_config () {
 	sed -i "s|\${SSH_PORT}|${SSH_PORT}|" /etc/nftables/fw.rules
 
 	# load ruleset from file
-	nft -f /etc/nftables/fw.ruleset
+	nft -f /etc/nftables/fw.rules
 
 	# display full rules
 	nft list ruleset
