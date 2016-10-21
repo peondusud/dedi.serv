@@ -20,6 +20,10 @@ fail2ban () {
 }
 
 portsentry () {
+
+	echo 'TCP_MODE="atcp"' > /etc/default/portsentry
+	echo 'UDP_MODE="audp"' >> /etc/default/portsentry
+	
 	apt-get install portsentry
 	
 	sed -i 's|"tcp|"atcp|g' /etc/default/portsentry
