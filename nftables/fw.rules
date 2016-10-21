@@ -1,6 +1,6 @@
-!/usr/sbin/nft -f
+#!/usr/sbin/nft -f
 
-flush ruleset
+#flush ruleset
 
 ### NF_IP_PRI_CONNTRACK_DEFRAG (-400): priority of defragmentation
 ### NF_IP_PRI_RAW (-300): traditional priority of the raw table placed before connection tracking operation
