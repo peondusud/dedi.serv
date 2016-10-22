@@ -6,6 +6,6 @@ set -x
 rm -rf  /tmp/dedi.serv || true
 apt-get update 
 apt-get upgrade
-apt-get install -y git 
+apt-get install -y git || true
 git clone https://github.com/peondusud/dedi.serv.git $DIR
 source $DIR/debian.sh
