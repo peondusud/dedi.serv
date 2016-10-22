@@ -19,8 +19,7 @@ settings_warning () {
 	echo "USERNAME =  ${USERNAME}"
 	echo "SSH_PORT = ${SSH_PORT}"		
 	echo "MYDOMAIN = ${MYDOMAIN}"
-	echo -n "Is this a good (y/n)? "
-	read answer
+	read -p "Is this a good (y/n)? " answer
 	if echo "$answer" | grep -iq "^n" ;then
     	exit
 	fi
