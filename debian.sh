@@ -42,8 +42,11 @@ new_user_config () {
             useradd -ms /bin/zsh "${USERNAME}"
             passwd "${USERNAME}"
       fi
-      echo "Add ${USERNAME} to sudoers"
-      echo "${USERNAME}    ALL=(ALL:ALL) ALL" >> /etc/sudoers
+	  ret=$(grep "^${USERNAME}" /etc/sudoers" /etc/ssh/sshd_config| wc -l) || true
+	  if [ $ret -eq 0 ] ; then
+      	echo "Add ${USERNAME} to sudoers"
+      	echo "${USERNAME}    ALL=(ALL:ALL) ALL" >> /etc/sudoers
+	  fi
 }
 
 ssh_config () {
@@ -52,9 +55,15 @@ ssh_config () {
       sed -i "s|\(Port\).*$|\1 ${SSH_PORT}|" /etc/ssh/sshd_config
       sed -i "s|\(PermitRootLogin\).*$|\1 no|" /etc/ssh/sshd_config
       sed -i "s|\(X11Forwarding\).*$|\1 no|" /etc/ssh/sshd_config
-      echo "AllowUsers ${USERNAME}" >> /etc/ssh/sshd_config
-      echo "AddressFamily inet # IPv4 only" >> /etc/ssh/sshd_config
-
+      
+      ret=$(grep "AllowUsers.*${USERNAME}" /etc/ssh/sshd_config| wc -l) || true
+      if [ $ret -eq 0 ] ; then
+      	echo "AllowUsers ${USERNAME}" >> /etc/ssh/sshd_config
+      fi
+      ret=$(grep '^AddressFamily inet' /etc/ssh/sshd_config| wc -l) || true
+      if [ $ret -eq 0 ] ; then
+      	echo "AddressFamily inet # IPv4 only" >> /etc/ssh/sshd_config
+	  fi
       echo "On your desktop, to use certificat:"
       echo "ssh-copy-id -i ~/.ssh/id_rsa.pub ${USERNAME}@MYDOMAIN"
 
@@ -176,10 +185,10 @@ add_repo () {
 	echo -e "\n#Depot Nginx\ndeb http://nginx.org/packages/debian/ jessie nginx" > /etc/apt/sources.list.d/nginx.list
 	echo -e "\n#Depot Dotdeb\ndeb http://packages.dotdeb.org jessie all" > /etc/apt/sources.list.d/dotdeb.list
 	echo -e "\n#Depot Multimedia\ndeb http://www.deb-multimedia.org jessie main non-free" > /etc/apt/sources.list.d/multimedia.list
-	find /etc/apt/ -name *.list | xargs cat | grep  ^[[:space:]]*deb | grep -v deb-src | grep "jessie-backports main"
-	if ! [ $? -eq 0 ] ; then
-		echo "deb http://ftp.debian.org/debian jessie-backports main" >> /etc/apt/sources.list
-		#echo "deb http://httpredir.debian.org/debian jessie-backports main" >> /etc/apt/sources.list
+	ret=$(find /etc/apt/ -name *.list | xargs cat | grep  ^[[:space:]]*deb | grep -v deb-src | grep "jessie-backports main" | wc -l) || true
+	if [ $ret -eq 0 ] ; then
+		#echo "deb http://ftp.debian.org/debian jessie-backports main" >> /etc/apt/sources.list
+		echo "deb http://httpredir.debian.org/debian jessie-backports main" >> /etc/apt/sources.list
 	fi
 	
 	curl -s http://www.dotdeb.org/dotdeb.gpg | apt-key add -
