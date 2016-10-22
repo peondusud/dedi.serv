@@ -94,12 +94,9 @@ nftables_config () {
 	sed -i "s|\${SSH_PORT}|${SSH_PORT}|" /etc/nftables/fw.rules
 
 	# load ruleset from file
-	nft -f /etc/nftables/fw.rules
-
+	#nft -f /etc/nftables/fw.rules
 	# display full rules
-	nft list ruleset
-
-	cp $DIR/fail2ban/action.d/nftables-common.local /etc/fail2ban/action.d/nftables-common.local
+	#nft list ruleset
 
 	## check is xt_LOG module exists
 	grep xt_LOG /lib/modules/$(uname -r)/modules.dep
@@ -139,13 +136,13 @@ nftables_config () {
 	# enable netdata at boot
 	systemctl enable nftables
 	# start netdata
-	service nftables start     
+	service nftables start
 }
 
 cron_apt_config () {
 	apt-get install -y cron-apt
 	echo 'APTCOMMAND=/usr/bin/apt-get' 	> /etc/cron-apt/config
-	echo 'MAILTO="root"' 				>> /etc/cron-apt/config
+	echo 'MAILTO="root"' 			>> /etc/cron-apt/config
 	echo 'OPTIONS="-o quiet=1 -o Dir::Etc::SourceList=/etc/apt/sources.list.d/security.list"' >> /etc/cron-apt/config
 
 	echo 'deb http://httpredir.debian.org/debian jessie-updates main contrib non-free' > /etc/apt/sources.list.d/security.list
