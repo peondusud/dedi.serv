@@ -6,4 +6,4 @@ apt-get update
 apt-get upgrade
 apt-get install -y git 
 git clone https://github.com/peondusud/dedi.serv.git $DIR
-bash -x $DIR/debian.sh
+source $DIR/debian.sh
