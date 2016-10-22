@@ -16,12 +16,18 @@ TORRENT_DEPS="libncursesw5 screen curl unzip unrar rar zip bzip2 ffmpeg buildtor
 
 
 settings_warning () {
+	read -p "USERNAME = " -i ${USERNAME} -e usr
+	USERNAME=${usr:-USERNAME}
+	read -p "USERNAME = " -i ${SSH_PORT} -e tmp
+	SSH_PORT=${tmp:-SSH_PORT}	
+	read -p "USERNAME = " -i ${MYDOMAIN} -e ret
+	MYDOMAIN=${ret:-MYDOMAIN}	
 	echo "USERNAME =  ${USERNAME}"
 	echo "SSH_PORT = ${SSH_PORT}"		
 	echo "MYDOMAIN = ${MYDOMAIN}"
 	read -p "Is this a good (y/n)? " answer
 	if echo "$answer" | grep -iq "^n" ;then
-    	exit
+    		exit
 	fi
 }
 
