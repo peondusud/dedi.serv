@@ -1,6 +1,8 @@
 #!/bin/bash
 DIR=/tmp/dedi.serv
 
+set -x
+
 rm -rf  /tmp/dedi.serv || true
 apt-get update 
 apt-get upgrade
