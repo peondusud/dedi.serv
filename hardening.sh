@@ -23,6 +23,7 @@ portsentry () {
 
 	echo 'TCP_MODE="atcp"' > /etc/default/portsentry
 	echo 'UDP_MODE="audp"' >> /etc/default/portsentry
+	echo "portsentry      portsentry/warn_no_block        note"| debconf-set-selections
 	
 	apt-get install portsentry
 	
