@@ -7,7 +7,7 @@ DIR=/tmp/dedi.serv
 
 SHELL_PATH=$(dirname $0)
 
-set -euf -o pipefail
+set -xeuf -o pipefail
 
 
 BUILD_DEPS="git subversion automake libtool libcppunit-dev build-essential pkg-config libssl-dev libcurl4-openssl-dev libsigc++-2.0-dev libncurses5-dev"
