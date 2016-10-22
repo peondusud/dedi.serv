@@ -10,8 +10,8 @@ fail2ban () {
       #echo "popularity-contest      popularity-contest/submiturls   string"|  debconf-set-selections
       apt-get install --no-install-recommends --no-install-suggests -y fail2ban python-pyinotify rsyslog whois
 
+      cp $DIR/fail2ban/action.d/nftables-common.local /etc/fail2ban/action.d/nftables-common.local
       cp $DIR/fail2ban/jail.local /etc/fail2ban/jail.local
-
       cp $DIR/fail2ban/jail.d/recidive.conf /etc/fail2ban/jail.d/recidive.conf
 
       sed -i "s|\(port *=\) ssh|\1 ${SSH_PORT}|" /etc/fail2ban/jail.local
@@ -35,15 +35,14 @@ portsentry () {
 	sed -i 's/\(BLOCK_TCP=\).*/\1"1"/g' /etc/portsentry/portsentry.conf
 	sed -i 's/\(BLOCK_UDP=\).*/\1"1"/g' /etc/portsentry/portsentry.conf
 	sed -i 's|^\(KILL_ROUTE="\).*$|\1/usr/sbin/nft add element filter blackhole { $TARGET$ }"|' /etc/portsentry/portsentry.conf
-
-	systemctl start portsentry
 	systemctl enable portsentry
+	systemctl start portsentry	
 }
 
 rkhunter () {
 	apt-get install -f rkhunter libwww-perl
 	
-	#vim /etc/rkhunter.conf
+	# /etc/rkhunter.conf
 	# test conf
 	rkhunter -c --sk
 	# update
