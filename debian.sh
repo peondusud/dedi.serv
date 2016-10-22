@@ -42,7 +42,7 @@ new_user_config () {
             useradd -ms /bin/zsh "${USERNAME}"
             passwd "${USERNAME}"
       fi
-	  ret=$(grep "^${USERNAME}" /etc/sudoers" /etc/ssh/sshd_config| wc -l) || true
+	  ret=$(grep "^${USERNAME}" /etc/sudoers /etc/ssh/sshd_config| wc -l) || true
 	  if [ $ret -eq 0 ] ; then
       	echo "Add ${USERNAME} to sudoers"
       	echo "${USERNAME}    ALL=(ALL:ALL) ALL" >> /etc/sudoers
@@ -56,7 +56,7 @@ ssh_config () {
       sed -i "s|\(PermitRootLogin\).*$|\1 no|" /etc/ssh/sshd_config
       sed -i "s|\(X11Forwarding\).*$|\1 no|" /etc/ssh/sshd_config
       
-      ret=$(grep "AllowUsers.*${USERNAME}" /etc/ssh/sshd_config| wc -l) || true
+      ret=$(grep "^AllowUsers.*${USERNAME}" /etc/ssh/sshd_config| wc -l) || true
       if [ $ret -eq 0 ] ; then
       	echo "AllowUsers ${USERNAME}" >> /etc/ssh/sshd_config
       fi
