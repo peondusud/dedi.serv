@@ -298,6 +298,7 @@ nginx_conf () {
 	if ! [ $ret -eq 0 ]; then
 		#add nginx to www-data group
 		usermod -a -G www-data nginx
+	fi
 	cp -rv $DIR/nginx /etc/	
 	mkdir -p /etc/nginx/passwd
 	mkdir -p /etc/nginx/sites-enabled
