@@ -294,13 +294,15 @@ nginx_install () {
 }
 
 nginx_conf () {
-	#add nginx to www-data group
-	usermod -a -G www-data nginx
+	ret=$(getent passwd nginx) || true
+	if ! [ $ret -eq 0 ]; then
+		#add nginx to www-data group
+		usermod -a -G www-data nginx
 	cp -rv $DIR/nginx /etc/	
 	mkdir -p /etc/nginx/passwd
 	mkdir -p /etc/nginx/sites-enabled
 	mkdir -p /var/spool/nginx/client
-	htpasswd -s -c  /etc/nginx/passwd/rutorrent_passwd ${USERNAME}
+	htpasswd -s -c /etc/nginx/passwd/rutorrent_passwd ${USERNAME}
 	chmod 640 /etc/nginx/passwd/*
 	chown -R --changes www-data:www-data /etc/nginx/passwd/	
 	systemctl restart nginx.service
