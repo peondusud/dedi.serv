@@ -91,8 +91,8 @@ nftables_config () {
 		echo "deb http://httpredir.debian.org/debian jessie-backports main" >> /etc/apt/sources.list
 	fi
 	apt-get update
-	apt-get install -y nftables ulogd2 ulogd2-sqlite3 ulogd2-pcap ulogd2-json
-	#nft flush table filter
+	apt-get install -y linux-image-amd64 nftables ulogd2 ulogd2-sqlite3 ulogd2-pcap ulogd2-json 
+	#nft flush ruleset > linux-image-amd64
 
 	mkdir -p /etc/nftables
 	cp $DIR/nftables/fw.rules /etc/nftables/fw.rules
