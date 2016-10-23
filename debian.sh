@@ -32,15 +32,15 @@ settings_warning () {
 }
 
 install_req () {
-      apt-get update
-      apt-get -y dist-upgrade
-      apt-get install -y htop curl unzip git subversion nano vim zsh 
-      apt-get remove -y bind9
+      apt-get update || true
+      apt-get -y dist-upgrade  || true
+      apt-get install -y htop curl unzip git subversion nano vim zsh  || true
+      apt-get remove -y bind9  || true
       #apt-get --purge autoremove 
 }
 
 new_user_config () {
-      apt-get install -y sudo
+      apt-get install -y sudo || true
       ret=$(id -u ${USERNAME} > /dev/null 2>&1; echo $?) || true
       if [ $ret -eq 1 ] ; then
             echo "Add new user: ${USERNAME}"
@@ -215,7 +215,7 @@ libtorrent_build () {
 	cd /tmp
 	git clone https://github.com/rakshasa/libtorrent.git
 	cd libtorrent
-	git checkout 0.13.6
+	git checkout $(git tag |tail -1)
 	./autogen.sh
 	./configure --with-posix-fallocate
 	make -j$(nproc)
@@ -227,7 +227,7 @@ rtorrent_build () {
 	cd /tmp
 	git clone https://github.com/rakshasa/rtorrent.git
 	cd rtorrent
-	git checkout 0.9.6
+	git checkout $(git tag |tail -1)
 	./autogen.sh
 	./configure --with-xmlrpc-c --with-ncurses
 	make
@@ -286,9 +286,9 @@ rutorrent_conf () {
 
 nginx_install () {
 	# http2 nginx version
-	apt-get install -y nginx-extras
-	apt-get -f install -y	
-	apt-get install -y openssl -t jessie-backports
+	apt-get install -y nginx-extras || true
+	apt-get -f install -y || true	
+	apt-get install -y openssl -t jessie-backports || true
 }
 
 nginx_conf () {
@@ -317,7 +317,7 @@ nginx_ssl_conf () {
 letencrypt_conf () {
 	MYMAIL=webmaster@${MYDOMAIN}
 	
-	apt-get install git
+	apt-get install git || true
 	git clone https://github.com/letsencrypt/letsencrypt /opt/letsencrypt --depth=1	|| true
 	mkdir -p /etc/letsencrypt/configs
 	mkdir -p /var/www/letsencrypt
@@ -351,16 +351,16 @@ php7_conf () {
 
 install_torrent () {
 	add_repo	
-	apt-get install  --no-install-suggests -y ${BUILD_DEPS} ${NGINX_DEPS} ${TORRENT_DEPS}
-	type -P xmlrpc-c-config >/dev/null 2>&1
-	if [ $? -eq 1 ]; then
+	apt-get install  --no-install-suggests -y ${BUILD_DEPS} ${NGINX_DEPS} ${TORRENT_DEPS} || true
+	ret=$(type -P xmlrpc-c-config | wc -l) || true
+	if [ $ret -eq 0 ]; then
 		xmlrpc_build
 	fi	
 	if ! [ -e /usr/local/lib/libtorrent.so ]; then	
 		libtorrent_build
-	fi	
-	type -P rtorrent >/dev/null 2>&1
-	if [ $? -eq 1 ]; then
+	fi
+	ret=$(type -P rtorrent | wc -l) || true
+	if [ $ret -eq 0 ]; then
 		rtorrent_build
 	fi
 	rtorrent_config	
