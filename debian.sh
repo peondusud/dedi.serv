@@ -286,7 +286,9 @@ rutorrent_conf () {
 
 nginx_install () {
 	# http2 nginx version
+	rm /etc/nginx/sites-enabled/default || true
 	apt-get install -y nginx-extras || true
+	rm /etc/nginx/sites-enabled/default || true
 	apt-get -f install -y || true	
 	apt-get install -y openssl -t jessie-backports || true
 }
