@@ -304,7 +304,9 @@ nginx_conf () {
 	mkdir -p /etc/nginx/sites-enabled
 	mkdir -p /var/spool/nginx/client
 	htpasswd -s -c /etc/nginx/passwd/rutorrent_passwd ${USERNAME}
-	chmod 640 /etc/nginx/passwd/*
+	#chmod 640 /etc/nginx/passwd/*
+	find /etc/nginx/passwd/ -type f -exec chmod 640 {} +
+	
 	chown -R --changes www-data:www-data /etc/nginx/passwd/	
 	systemctl restart nginx.service
 }
