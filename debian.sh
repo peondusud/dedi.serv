@@ -294,7 +294,7 @@ nginx_install () {
 }
 
 nginx_conf () {
-	ret=$(getent passwd nginx) || true
+	ret=$(getent passwd nginx |wc -l) || true
 	if ! [ $ret -eq 0 ]; then
 		#add nginx to www-data group
 		usermod -a -G www-data nginx
