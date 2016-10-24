@@ -338,7 +338,7 @@ letencrypt_conf () {
 	
 	cp $DIR/nginx/sites-available/letsencrypt.conf  /etc/nginx/sites-available/letsencrypt.conf	
 	
-	unlink /etc/nginx/sites-enabled/*
+	find /etc/nginx/sites-enabled -type f -exec unlink {} +
 	ln -s /etc/nginx/sites-available/letsencrypt.conf /etc/nginx/sites-enabled/letsencrypt.conf
 	service nginx reload
 	# generate certs
