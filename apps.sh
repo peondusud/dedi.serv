@@ -3,7 +3,6 @@
 PLEX_DEPS="alsa alsa-oss oss-compat libasound2-plugins"
 
 mono_install () {
-	sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
 	echo "deb http://download.mono-project.com/repo/debian wheezy main" 					> /etc/apt/sources.list.d/mono.list
 	echo "deb http://download.mono-project.com/repo/debian wheezy-apache24-compat main"	 	>> /etc/apt/sources.list.d/mono.list
 	echo "deb http://download.mono-project.com/repo/debian wheezy-libjpeg62-compat main" 	>> /etc/apt/sources.list.d/mono.list
@@ -11,6 +10,8 @@ mono_install () {
 	echo "deb http://download.mono-project.com/repo/debian 310-security main" 	>> /etc/apt/sources.list.d/mono.list
 	echo "deb http://download.mono-project.com/repo/debian 312-security main" 	>> /etc/apt/sources.list.d/mono.list
 	echo "deb http://download.mono-project.com/repo/debian 40-security main" 	>> /etc/apt/sources.list.d/mono.list
+	apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
+	apt-key adv --keyserver keyserver.ubuntu.com --recv-key A6A19B38D3D831EF
 	apt-get update
 	apt-get install -y mono-complete ca-certificates-mono
 }
@@ -36,9 +37,11 @@ plex_install () {
 }
 
 emby_install () {
-	echo 'deb http://download.opensuse.org/repositories/home:/emby/Debian_8.0/ /' > /etc/apt/sources.list.d/embyserver.list 
-	curl http://download.opensuse.org/repositories/home:emby/Debian_8.0/Release.key | apt-key add -
+	echo 'deb http://download.opensuse.org/repositories/home:/emby/Debian_8.0/ /' > /etc/apt/sources.list.d/embyserver.list
+	apt-key adv --keyserver keyserver.ubuntu.com --recv-key 0A506F712A7D8A28
 	apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
+	curl http://download.opensuse.org/repositories/home:emby/Debian_8.0/Release.key | apt-key add -
+		
 	apt-get update
 	apt-get install mono-complete emby-server
 	service emby-server start
