@@ -32,7 +32,7 @@ plex_install () {
 	echo "deb http://shell.ninthgate.se/packages/debian jessie main" > /etc/apt/sources.list.d/plexmediaserver.list
 	curl http://shell.ninthgate.se/packages/shell.ninthgate.se.gpg.key | apt-key add -
 	apt-get update
-	apt-get install plexmediaserver
+	apt-get install -y plexmediaserver
 	service plexmediaserver start
 }
 
@@ -43,7 +43,7 @@ emby_install () {
 	curl http://download.opensuse.org/repositories/home:emby/Debian_8.0/Release.key | apt-key add -
 		
 	apt-get update
-	apt-get install mono-complete emby-server
+	apt-get install -y mono-complete emby-server
 	service emby-server start
 }
 
@@ -196,7 +196,7 @@ syncthing_install () {
 	echo "deb http://apt.syncthing.net/ syncthing release" > /etc/apt/sources.list.d/syncthing.list
 	# Update and install syncthing:
 	sudo apt-get update
-	sudo apt-get install syncthing
+	sudo apt-get install -y syncthing
 }
 
 apps () {
