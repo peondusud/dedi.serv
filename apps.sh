@@ -74,8 +74,8 @@ sickrage_install () {
 }
 
 couchpotato_install () {
-	useradd --system --user-group --no-create-home --disabled-password couchpotato
-	usermod -a -G ${rtorrent_user} couchpotato
+	useradd --system --user-group --no-create-home -G ${rtorrent_user} couchpotato
+	#usermod -a -G ${rtorrent_user} couchpotato
 	apt-get install -y python-lxml python-pip python-setuptools libssl-dev libffi-dev python-dev
 	#pip install -U pyopenssl
 	git clone https://github.com/CouchPotato/CouchPotatoServer.git /opt/couchpotato
@@ -200,8 +200,8 @@ syncthing_install () {
 }
 
 apps () {
-	plex_install
-	emby_install
+	#plex_install
+	#emby_install
 	sickrage_install
 	couchpotato_install
 	headphones_install
