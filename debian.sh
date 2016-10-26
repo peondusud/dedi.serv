@@ -16,19 +16,25 @@ TORRENT_DEPS="libncursesw5 screen curl unzip unrar rar zip bzip2 ffmpeg buildtor
 
 
 settings_warning () {
+	# ask all needed inputs
 	read -p "USERNAME = " -i ${USERNAME} -e usr
 	USERNAME=${usr:-USERNAME}
+	
 	read -p "USERNAME = " -i ${SSH_PORT} -e tmp
-	SSH_PORT=${tmp:-SSH_PORT}	
+	SSH_PORT=${tmp:-SSH_PORT}
+	
 	read -p "USERNAME = " -i ${MYDOMAIN} -e ret
-	MYDOMAIN=${ret:-MYDOMAIN}	
+	MYDOMAIN=${ret:-MYDOMAIN}
+	
 	echo "USERNAME =  ${USERNAME}"
 	echo "SSH_PORT = ${SSH_PORT}"		
-	echo "MYDOMAIN = ${MYDOMAIN}"
+	echo "MYDOMAIN = ${MYDOMAIN}"	
 	read -p "Is this a good (y/n)? " answer
-	if echo "$answer" | grep -iq "^n" ;then
+	if echo "$answer" | grep -iq "^n" ; then
     		exit
 	fi
+	
+	htpasswd -s -c /etc/nginx/passwd/rutorrent_passwd ${USERNAME}
 }
 
 install_req () {
@@ -40,18 +46,18 @@ install_req () {
 }
 
 new_user_config () {
-      apt-get install -y sudo || true
-      ret=$(id -u ${USERNAME} > /dev/null 2>&1; echo $?) || true
-      if [ $ret -eq 1 ] ; then
-            echo "Add new user: ${USERNAME}"
-            useradd -ms /bin/zsh "${USERNAME}"
-            passwd "${USERNAME}"
-      fi
-	  ret=$(grep "^${USERNAME}" /etc/sudoers /etc/ssh/sshd_config| wc -l) || true
-	  if [ $ret -eq 0 ] ; then
-      	echo "Add ${USERNAME} to sudoers"
-      	echo "${USERNAME}    ALL=(ALL:ALL) ALL" >> /etc/sudoers
-	  fi
+	apt-get install -y sudo || true
+	ret=$(id -u ${USERNAME} > /dev/null 2>&1; echo $?) || true
+	if [ $ret -eq 1 ] ; then
+		echo "Add new user: ${USERNAME}"
+		useradd -ms /bin/zsh "${USERNAME}"
+		passwd "${USERNAME}"
+	fi
+	ret=$(grep "^${USERNAME}" /etc/sudoers /etc/ssh/sshd_config| wc -l) || true
+	if [ $ret -eq 0 ] ; then
+		echo "Add ${USERNAME} to sudoers"
+		echo "${USERNAME}    ALL=(ALL:ALL) ALL" >> /etc/sudoers
+	fi
 }
 
 ssh_config () {
@@ -139,9 +145,15 @@ nftables_config () {
 	# let systemd know there is a new service
 	systemctl daemon-reload
 	systemctl enable nftables
+	ret=$(uname -r|grep "^4") || true
+	if [ $ret -eq 1 ] ; then
+		# allow flush ruleset with 4.x kernel
+		sed -i 's|^#\(flush ruleset\)|\1|' /etc/nftables/fw.rules		
+	fi
 	service nftables start
 	# after reboot, allow flush ruleset with new kernel
 	sed -i 's|^#\(flush ruleset\)|\1|' /etc/nftables/fw.rules
+	
 }
 
 cron_apt_config () {
@@ -303,7 +315,10 @@ nginx_conf () {
 	mkdir -p /etc/nginx/passwd
 	mkdir -p /etc/nginx/sites-enabled
 	mkdir -p /var/spool/nginx/client
-	htpasswd -s -c /etc/nginx/passwd/rutorrent_passwd ${USERNAME}
+	ret=$(grep "^${USERNAME}:"  /etc/nginx/passwd/rutorrent_passwd |wc -l)
+	if ! [ $ret -eq 0 ]; then	
+		htpasswd -s -c /etc/nginx/passwd/rutorrent_passwd ${USERNAME}
+	fi
 	#chmod 640 /etc/nginx/passwd/*
 	find /etc/nginx/passwd/ -type f -exec chmod 640 {} +
 	
