@@ -97,9 +97,10 @@ nftables_config () {
 		echo "deb http://httpredir.debian.org/debian jessie-backports main" >> /etc/apt/sources.list
 	fi
 	apt-get update
-	apt-get install -y linux-image-amd64 nftables ulogd2 ulogd2-sqlite3 ulogd2-pcap ulogd2-json 
 	#nft flush ruleset > linux-image-amd64
-
+	apt-get install -y linux-image-amd64 -t jessie-backports
+	apt-get install -y nftables ulogd2 ulogd2-sqlite3 ulogd2-pcap ulogd2-json 
+	
 	mkdir -p /etc/nftables
 	cp $DIR/nftables/fw.rules /etc/nftables/fw.rules
 	sed -i "s|\${SSH_PORT}|${SSH_PORT}|" /etc/nftables/fw.rules
@@ -145,7 +146,7 @@ nftables_config () {
 	# let systemd know there is a new service
 	systemctl daemon-reload
 	systemctl enable nftables
-	ret=$(uname -r|grep "^4") || true
+	ret=$(uname -r| grep "^4" |wc -l ) || true
 	if [ $ret -eq 1 ] ; then
 		# allow flush ruleset with 4.x kernel
 		sed -i 's|^#\(flush ruleset\)|\1|' /etc/nftables/fw.rules		
@@ -316,7 +317,7 @@ nginx_conf () {
 	mkdir -p /etc/nginx/sites-enabled
 	mkdir -p /var/spool/nginx/client
 	ret=$(grep "^${USERNAME}:"  /etc/nginx/passwd/rutorrent_passwd |wc -l)
-	if ! [ $ret -eq 0 ]; then	
+	if  [ $ret -eq 0 ]; then	
 		htpasswd -s -c /etc/nginx/passwd/rutorrent_passwd ${USERNAME}
 	fi
 	#chmod 640 /etc/nginx/passwd/*
