@@ -138,10 +138,10 @@ nftables_config () {
 	cp $DIR/systemd/system/nftables.service /etc/systemd/system/nftables.service
 	# let systemd know there is a new service
 	systemctl daemon-reload
-	# enable netdata at boot
 	systemctl enable nftables
-	# start netdata
 	service nftables start
+	# after reboot, allow flush ruleset with new kernel
+	sed -i 's|^#\(flush ruleset\)|\1|' /etc/nftables/fw.rules
 }
 
 cron_apt_config () {
