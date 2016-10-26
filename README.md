@@ -1,16 +1,14 @@
 # dedi.serv
 
 ```bash
-wget -qO- https://github.com/peondusud/dedi.serv/raw/master/net.sh | bash -x -
+wget -qO- https://github.com/peondusud/dedi.serv/raw/master/net.sh | bash -
 ```
+Or
 
 ```bash
-wget -qO- https://github.com/peondusud/dedi.serv/raw/master/debian.sh | bash -x -
+bash -c "$(wget -qO- https://github.com/peondusud/dedi.serv/raw/master/net.sh)"
 ```
 
-```bash
-wget --no-check-certificate -qO- https://github.com/peondusud/dedi.serv/raw/master/debian.sh ; bash -x -
-```
 
 Check open ports:
 ```bash
