@@ -324,7 +324,7 @@ nginx_conf () {
 	find /etc/nginx/passwd/ -type f -exec chmod 640 {} +
 	
 	chown -R --changes www-data:www-data /etc/nginx/passwd/	
-	systemctl restart nginx.service
+	systemctl restart nginx
 }
 
 nginx_ssl_conf () {	
