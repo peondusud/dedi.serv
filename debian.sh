@@ -300,6 +300,7 @@ rutorrent_conf () {
 nginx_install () {
 	# http2 nginx version
 	rm /etc/nginx/sites-enabled/default || true
+	rm /etc/nginx/sites-available/default || true
 	apt-get install -y nginx-extras || true
 	rm /etc/nginx/sites-enabled/default || true
 	apt-get -f install -y || true	
@@ -325,6 +326,7 @@ nginx_conf () {
 	
 	chown -R --changes www-data:www-data /etc/nginx/passwd/
 	rm /etc/nginx/sites-enabled/default || true
+	rm /etc/nginx/sites-available/default || true
 	systemctl restart nginx
 }
 
