@@ -323,7 +323,8 @@ nginx_conf () {
 	#chmod 640 /etc/nginx/passwd/*
 	find /etc/nginx/passwd/ -type f -exec chmod 640 {} +
 	
-	chown -R --changes www-data:www-data /etc/nginx/passwd/	
+	chown -R --changes www-data:www-data /etc/nginx/passwd/
+	rm /etc/nginx/sites-enabled/default || true
 	systemctl restart nginx
 }
 
