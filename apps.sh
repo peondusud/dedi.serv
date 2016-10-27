@@ -149,7 +149,9 @@ sonarr_install () {
 	echo "deb http://apt.sonarr.tv/ master main" > /etc/apt/sources.list.d/sonarr.list
 	apt-get update
 	apt-get install -y nzbdrone apt-transport-https
-	mono --debug /opt/NzbDrone/NzbDrone.exe	
+	
+	exec mono --debug /opt/NzbDrone/NzbDrone.exe & > /dev/null ; sleep 60 && kill -9 $!
+
 }
 
 jackett_install () {
@@ -162,6 +164,7 @@ jackett_install () {
 	mv /opt/Jackett /opt/jackett
 	chown -R jackett:jackett /opt/jackett
 	sudo -u jackett mono --debug /opt/jackett/JackettConsole.exe -d /opt/jackett &
+	sleep 30
 	kill -9 $!
 	pkill -u jackett
 	#base path for reverseproxy (nginx)
