@@ -325,8 +325,8 @@ nginx_conf () {
 	find /etc/nginx/passwd/ -type f -exec chmod 640 {} +
 	
 	chown -R --changes www-data:www-data /etc/nginx/passwd/
-	rm /etc/nginx/sites-enabled/default || true
-	rm /etc/nginx/sites-available/default || true
+	find /etc/nginx/sites-enabled -type f -exec unlink {} +
+	rm /etc/nginx/sites-available/default || true	
 	systemctl restart nginx
 }
 
