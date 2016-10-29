@@ -124,7 +124,7 @@ tardis_install () {
 
 headphones_install () {
 	# https://github.com/rembo10/headphones/wiki/Installation
-	adduser --system --no-create-home headphones
+	adduser --system --group --no-create-home headphones
 	git clone https://github.com/rembo10/headphones.git /opt/headphones
 	chown -R headphones:nogroup /opt/headphones
 	exec python Headphones.py & > /dev/null ; kill -9 $!
@@ -179,12 +179,12 @@ jackett_install () {
 netdata_install () {
 	apt-get  install -y  zlib1g-dev uuid-dev libmnl-dev gcc make git autoconf autoconf-archive autogen automake pkg-config curl  python-yaml python-mysqldb python-psycopg2 netcat
 	git clone --depth=1 https://github.com/firehol/netdata.git /tmp/netdata
-	cd /tmp/netdata;
-	./netdata-installer.sh  --dont-wait --libs-are-really-here	
+	#cd /tmp/netdata;
+	/tmp/netdata/netdata-installer.sh  --dont-wait --libs-are-really-here	
 	killall netdata	
 	# remove external call (registry.my-netdata.io)
 	sed -i "s|registry.my-netdata.io|${MYDOMAIN}/netdata|" /etc/netdata/netdata.conf
-	/tmp/netdata/system/netdata.service /etc/systemd/system/netdata.service
+	cp /tmp/netdata/system/netdata.service /etc/systemd/system/netdata.service
 	# let systemd know there is a new service
 	systemctl daemon-reload
 	# enable netdata at boot
