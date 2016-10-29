@@ -33,7 +33,7 @@ settings_warning () {
 	if echo "$answer" | grep -iq "^n" ; then
     		exit
 	fi
-	
+	mkdir -p /etc/nginx/passwd
 	htpasswd -s -c /etc/nginx/passwd/rutorrent_passwd ${USERNAME}
 }
 
@@ -208,6 +208,7 @@ add_repo () {
 	
 	curl -s http://www.dotdeb.org/dotdeb.gpg | apt-key add -
 	apt-key adv --keyserver hkp://pgp.mit.edu:80 --recv-keys 573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62
+	apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 5C808C2B65558117
 	#apt-key adv --keyserver keyserver.ubuntu.com --recv-keys $nginx_pubkey # remove NO_PUBKEY
 	apt-get update
 	apt-get install -y --force-yes deb-multimedia-keyring
