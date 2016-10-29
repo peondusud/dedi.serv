@@ -1,6 +1,6 @@
 #!/bin/sh
 
-find /etc/nginx/sites-enabled -type f -exec unlink {} +
+find /etc/nginx/sites-enabled -type l -exec unlink {} +
 ln -s /etc/nginx/sites-available/letsencrypt.conf /etc/nginx/sites-enabled/letsencrypt.conf
 service nginx reload
 /opt/letsencrypt/letsencrypt-auto renew >> /var/log/letsencrypt/renew.log
