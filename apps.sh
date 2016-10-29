@@ -81,6 +81,7 @@ couchpotato_install () {
 	#usermod -a -G ${rtorrent_user} couchpotato
 	apt-get install -y python-lxml python-pip python-setuptools libssl-dev libffi-dev python-dev
 	#pip install -U pyopenssl
+	rm -rf /opt/couchpotato
 	git clone https://github.com/CouchPotato/CouchPotatoServer.git /opt/couchpotato
 	
 	#service
@@ -126,6 +127,7 @@ tardis_install () {
 headphones_install () {
 	# https://github.com/rembo10/headphones/wiki/Installation
 	adduser --system --group --no-create-home headphones
+	rm -rf /opt/headphones
 	git clone https://github.com/rembo10/headphones.git /opt/headphones
 	chown -R headphones:nogroup /opt/headphones
 	python Headphones.py  > /dev/null & sleep 30; kill -9 $!
