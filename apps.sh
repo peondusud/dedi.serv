@@ -51,9 +51,10 @@ sickrage_install () {
 	addgroup --system sickrage
 	adduser --disabled-password --system --home /opt/sickrage --gecos "SickRage" --ingroup sickrage sickrage
 	
-	git clone https://github.com/SickRage/SickRage.git /opt/sickrage
-	
-	exec python /opt/sickrage/SickBeard.py & > /dev/null ; sleep 30 && kill -9 $!
+	rm -rf  /opt/sickrage
+        git clone https://github.com/SickRage/SickRage.git /opt/sickrage
+
+        python /opt/sickrage/SickBeard.py  > /dev/null & sleep 30 && kill -9 $!
 	
 	chown -R sickrage:sickrage /opt/sickrage
 	echo "SR_USER=sickrage"  > /etc/default/sickrage	
@@ -127,7 +128,7 @@ headphones_install () {
 	adduser --system --group --no-create-home headphones
 	git clone https://github.com/rembo10/headphones.git /opt/headphones
 	chown -R headphones:nogroup /opt/headphones
-	exec python Headphones.py & > /dev/null ; kill -9 $!
+	python Headphones.py  > /dev/null & sleep 30; kill -9 $!
 	echo "HP_USER=headphones         #$RUN_AS, username to run headphones under, the default is headphones" > /etc/default/headphones
 	echo "HP_HOME=/opt/headphones    #$APP_PATH, the location of Headphones.py, the default is /opt/headphones" >> /etc/default/headphones
 	echo "HP_DATA=/opt/headphones    #$DATA_DIR, the location of headphones.db, cache, logs, the default is /opt/headphones" >> /etc/default/headphones
@@ -150,8 +151,7 @@ sonarr_install () {
 	apt-get update
 	apt-get install -y nzbdrone apt-transport-https
 	
-	exec mono --debug /opt/NzbDrone/NzbDrone.exe & > /dev/null ; sleep 60 && kill -9 $!
-
+	mono --debug /opt/NzbDrone/NzbDrone.exe > /dev/null & sleep 60 && kill -9 $!
 }
 
 jackett_install () {
