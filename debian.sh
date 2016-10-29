@@ -325,7 +325,7 @@ nginx_conf () {
 	find /etc/nginx/passwd/ -type f -exec chmod 640 {} +
 	
 	chown -R --changes www-data:www-data /etc/nginx/passwd/
-	find /etc/nginx/sites-enabled -type f -exec unlink {} +
+	find /etc/nginx/sites-enabled -type l -exec unlink {} +
 	rm /etc/nginx/sites-available/default || true	
 	systemctl restart nginx
 }
@@ -357,7 +357,7 @@ letencrypt_conf () {
 	
 	cp $DIR/nginx/sites-available/letsencrypt.conf  /etc/nginx/sites-available/letsencrypt.conf	
 	
-	find /etc/nginx/sites-enabled -type f -exec unlink {} +
+	find /etc/nginx/sites-enabled -type l -exec unlink {} +
 	ln -s /etc/nginx/sites-available/letsencrypt.conf /etc/nginx/sites-enabled/letsencrypt.conf
 	service nginx reload
 	# generate certs
