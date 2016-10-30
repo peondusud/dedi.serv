@@ -54,7 +54,10 @@ sickrage_install () {
 	rm -rf  /opt/sickrage
         git clone https://github.com/SickRage/SickRage.git /opt/sickrage
 
-        python /opt/sickrage/SickBeard.py  > /dev/null & sleep 30 && kill -9 $!
+	#kill all running instances
+	pkill -9 -f SickBeard.py || true
+        nohup python /opt/sickrage/SickBeard.py > /dev/null &
+	sleep 30; kill -9 $! || true
 	
 	chown -R sickrage:sickrage /opt/sickrage
 	echo "SR_USER=sickrage"  > /etc/default/sickrage	
