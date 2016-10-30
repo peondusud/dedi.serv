@@ -89,6 +89,7 @@ couchpotato_install () {
 	
 	#service
 	cp /opt/couchpotato/init/couchpotato.service /etc/systemd/system/couchpotato.service
+	sed -i 's|/var/lib/CouchPotatoServer|/opt/couchpotato|' /etc/systemd/system/couchpotato.service
 	chown root:root /etc/systemd/system/couchpotato.service
 	chmod 644 /etc/systemd/system/couchpotato.service
 	# let systemd know there is a new service
