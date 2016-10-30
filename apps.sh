@@ -87,6 +87,11 @@ couchpotato_install () {
 	rm -rf /opt/couchpotato
 	git clone https://github.com/CouchPotato/CouchPotatoServer.git /opt/couchpotato
 	
+	sudo -u couchpotato /opt/couchpotato/CouchPotato.py &
+	sleep 30; kill -9 $! || true
+	
+	sed -i "s|\(url_base = \).*$|\1/couchpotato|"   /opt/couchpotato/.couchpotato/settings.conf
+	
 	#service
 	cp /opt/couchpotato/init/couchpotato.service /etc/systemd/system/couchpotato.service
 	sed -i 's|/var/lib/CouchPotatoServer|/opt/couchpotato|' /etc/systemd/system/couchpotato.service
