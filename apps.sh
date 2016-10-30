@@ -80,7 +80,7 @@ sickrage_install () {
 }
 
 couchpotato_install () {
-	useradd --system --user-group --no-create-home -G ${rtorrent_user} couchpotato
+	useradd --system --user-group --no-create-home -G ${rtorrent_user} couchpotato || true
 	#usermod -a -G ${rtorrent_user} couchpotato
 	apt-get install -y python-lxml python-pip python-setuptools libssl-dev libffi-dev python-dev
 	#pip install -U pyopenssl
@@ -133,7 +133,8 @@ headphones_install () {
 	rm -rf /opt/headphones
 	git clone https://github.com/rembo10/headphones.git /opt/headphones
 	chown -R headphones:nogroup /opt/headphones
-	python Headphones.py  > /dev/null & sleep 30; kill -9 $!
+	nohup python /opt/headphones/Headphones.py  > /dev/null &
+	sleep 30; kill -9 $! || true
 	echo "HP_USER=headphones         #$RUN_AS, username to run headphones under, the default is headphones" > /etc/default/headphones
 	echo "HP_HOME=/opt/headphones    #$APP_PATH, the location of Headphones.py, the default is /opt/headphones" >> /etc/default/headphones
 	echo "HP_DATA=/opt/headphones    #$DATA_DIR, the location of headphones.db, cache, logs, the default is /opt/headphones" >> /etc/default/headphones
@@ -162,16 +163,18 @@ sonarr_install () {
 jackett_install () {
 	mono_install
 	adduser --system --no-create-home jackett
-	apt-get install -y libcurl-dev
-	JACKETT_VER=$(curl -s   https://github.com/Jackett/Jackett/releases/latest |  grep -Pom 1 "v\d\.\d\.\d{3}")
+	#libcurl-dev virtual package -> libcurl-dev
+	apt-get install -y libcurl4-openssl-dev
+	JACKETT_VER=$(curl -s https://github.com/Jackett/Jackett/releases/latest |  grep -Pom 1 "v\d\.\d\.\d{3}")
 	wget https://github.com/Jackett/Jackett/releases/download/${JACKETT_VER}/Jackett.Binaries.Mono.tar.gz -O /tmp/Jackett.Binaries.Mono.tar.gz
 	tar -xzf /tmp/Jackett.Binaries.Mono.tar.gz -C /opt
 	mv /opt/Jackett /opt/jackett
 	chown -R jackett:jackett /opt/jackett
-	sudo -u jackett mono --debug /opt/jackett/JackettConsole.exe -d /opt/jackett &
-	sleep 30
-	kill -9 $!
+	
 	pkill -u jackett
+	sudo -u jackett mono --debug /opt/jackett/JackettConsole.exe -d /opt/jackett &
+	sleep 30; kill -9 $! || true
+	
 	#base path for reverseproxy (nginx)
 	sed -i 's|BasePathOverride": .*|BasePathOverride": "/jackett"|' /opt/jackett/ServerConfig.json
 	#todo download systemd service
