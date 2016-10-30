@@ -135,9 +135,9 @@ headphones_install () {
 	chown -R headphones:nogroup /opt/headphones
 	nohup python /opt/headphones/Headphones.py  > /dev/null &
 	sleep 30; kill -9 $! || true
-	echo "HP_USER=headphones         #$RUN_AS, username to run headphones under, the default is headphones" > /etc/default/headphones
-	echo "HP_HOME=/opt/headphones    #$APP_PATH, the location of Headphones.py, the default is /opt/headphones" >> /etc/default/headphones
-	echo "HP_DATA=/opt/headphones    #$DATA_DIR, the location of headphones.db, cache, logs, the default is /opt/headphones" >> /etc/default/headphones
+	echo 'HP_USER=headphones         #$RUN_AS, username to run headphones under, the default is headphones' > /etc/default/headphones
+	echo 'HP_HOME=/opt/headphones    #$APP_PATH, the location of Headphones.py, the default is /opt/headphones' >> /etc/default/headphones
+	echo 'HP_DATA=/opt/headphones    #$DATA_DIR, the location of headphones.db, cache, logs, the default is /opt/headphones' >> /etc/default/headphones
 	cp /opt/headphones/init-scripts/init.ubuntu /etc/init.d/headphones
 	chmod +x /etc/init.d/headphones
 	update-rc.d headphones defaults
@@ -162,7 +162,7 @@ sonarr_install () {
 
 jackett_install () {
 	mono_install
-	adduser --system --no-create-home jackett
+	adduser --system --group --no-create-home jackett
 	#libcurl-dev virtual package -> libcurl-dev
 	apt-get install -y libcurl4-openssl-dev
 	JACKETT_VER=$(curl -s https://github.com/Jackett/Jackett/releases/latest |  grep -Pom 1 "v\d\.\d\.\d{3}")
@@ -185,10 +185,10 @@ jackett_install () {
 	#http://ip.address:9117
 }
 netdata_install () {
-	apt-get  install -y  zlib1g-dev uuid-dev libmnl-dev gcc make git autoconf autoconf-archive autogen automake pkg-config curl  python-yaml python-mysqldb python-psycopg2 netcat
+	apt-get  install -y zlib1g-dev uuid-dev libmnl-dev gcc make git autoconf autoconf-archive autogen automake pkg-config curl  python-yaml python-mysqldb python-psycopg2 netcat
 	git clone --depth=1 https://github.com/firehol/netdata.git /tmp/netdata
-	#cd /tmp/netdata;
-	/tmp/netdata/netdata-installer.sh  --dont-wait --libs-are-really-here	
+	cd /tmp/netdata
+	./netdata-installer.sh  --dont-wait --libs-are-really-here	
 	killall netdata	
 	# remove external call (registry.my-netdata.io)
 	sed -i "s|registry.my-netdata.io|${MYDOMAIN}/netdata|" /etc/netdata/netdata.conf
@@ -213,8 +213,8 @@ syncthing_install () {
 }
 
 apps () {
-	#plex_install
-	#emby_install
+	plex_install
+	emby_install
 	sickrage_install
 	couchpotato_install
 	headphones_install
