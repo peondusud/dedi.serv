@@ -1,0 +1,116 @@
+[
+    {
+        "icone": "fa-download",
+        "id": "0",
+        "lien": "https://domain.tld/rutorrent",
+        "titre": "ruTorrent"
+    },
+    {
+        "icone": "fa-play-circle-o",
+        "id": "1",
+        "lien": "https://app.plex.tv/web/app",
+        "titre": "Plex"
+    },
+    {
+        "icone": "fa-television",
+        "id": "2",
+        "lien": "https://domain.tld/sickrage",
+        "titre": "Sickrage"
+    },
+    {
+        "icone": "fa-television",
+        "id": "3",
+        "lien": "https://domain.tld/couchpotato",
+        "titre": "Couchpotato"
+    },
+    {
+        "icone": "fa-television",
+        "id": "4",
+        "lien": "https://domain.tld/headphones",
+        "titre": "Headphones"
+    },
+    {
+        "icone": "fa-television",
+        "id": "5",
+        "lien": "https://domain.tld/jackett",
+        "titre": "jackett"
+    },
+    {
+        "icone": "fa-television",
+        "id": "6",
+        "lien": "https://domain.tld/sonarr",
+        "titre": "Sonarr"
+    },
+    {
+        "icone": "fa-file-o",
+        "id": "7",
+        "lien": "https://domain.tld/syncthing",
+        "titre": "Syncthing"
+    },
+    {
+        "icone": "fa-bar-chart",
+        "id": "8",
+        "lien": "https://domain.tld/netdata",
+        "titre": "Netdata"
+    },
+    {
+        "icone": "fa-bar-chart",
+        "id": "9",
+        "lien": "https://domain.tld/kibana",
+        "titre": "Kibana"
+    },
+    {
+        "icone": "fa-television",
+        "id": "10",
+        "lien": "https://domain.tld/",
+        "titre": "Selfoss"
+    },
+    {
+        "icone": "fa-envelope",
+        "id": "11",
+        "lien": "https://webmail.domain.tld",
+        "titre": "Rainloop"
+    },
+    {
+        "icone": "fa-cloud",
+        "id": "12",
+        "lien": "https://cloud.domain.tld",
+        "titre": "ownCloud"
+    },
+    {
+        "icone": "fa-file-image-o",
+        "id": "13",
+        "lien": "https://img.domain.tld",
+        "titre": "Lutim"
+    },
+    {
+        "icone": "fa-file-o",
+        "id": "14",
+        "lien": "https://file.domain.tld",
+        "titre": "Lufi"
+    },
+    {
+        "icone": "fa-file-text-o",
+        "id": "15",
+        "lien": "https://domain.tld/pastebin.",
+        "titre": "ZeroBin"
+    },
+    {
+        "icone": "fa-globe",
+        "id": "16",
+        "lien": "https://domain.tld/glype",
+        "titre": "Proxy"
+    },
+    {
+        "icone": "fa-file-code-o",
+        "id": "17",
+        "lien": "https://domain.tld/codiad",
+        "titre": "Codiad"
+    },
+    {
+        "icone": "fa-bar-chart",
+        "id": "18",
+        "lien": "https://domain.tld/shield",
+        "titre": "LibreNMS"
+    }
+]
