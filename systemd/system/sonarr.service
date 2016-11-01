@@ -1,0 +1,12 @@
+[Unit]
+Description=Sonarr application instance
+After=network.target
+
+[Service]
+ExecStart=/opt/NzbDrone/NzbDrone.exe
+Type=simple
+User=sonarr
+Group=sonarr
+
+[Install]
+WantedBy=multi-user.target
