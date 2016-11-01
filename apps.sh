@@ -139,19 +139,23 @@ headphones_install () {
 	rm -rf /opt/headphones
 	git clone https://github.com/rembo10/headphones.git /opt/headphones
 	chown -R headphones:nogroup /opt/headphones
-	nohup python /opt/headphones/Headphones.py  > /dev/null &
+	chmod +x /opt/headphones/Headphones.py
+	
+	#create config file
+	nohup /opt/headphones/Headphones.py --config /opt/headphones/config.ini --datadir /opt/headphones > /dev/null &
 	sleep 30; kill -9 $! || true
-	echo 'HP_USER=headphones         #$RUN_AS, username to run headphones under, the default is headphones' > /etc/default/headphones
-	echo 'HP_HOME=/opt/headphones    #$APP_PATH, the location of Headphones.py, the default is /opt/headphones' >> /etc/default/headphones
-	echo 'HP_DATA=/opt/headphones    #$DATA_DIR, the location of headphones.db, cache, logs, the default is /opt/headphones' >> /etc/default/headphones
-	cp /opt/headphones/init-scripts/init.ubuntu /etc/init.d/headphones
-	chmod +x /etc/init.d/headphones
-	update-rc.d headphones defaults
-	update-rc.d headphones enable
-	echo "http_host = 127.0.0.1" 	> /opt/headphones/config.ini
-	echo "customhost = ${MYDOMAIN}" > /opt/headphones/config.ini 
-	echo "http_port = 8181 #beware sickrage" > /opt/headphones/config.ini
-	service headphones start	 
+
+	#echo "customhost = ${MYDOMAIN}" 		>> 	/opt/headphones/config.ini 
+	#echo "http_port = 8181 #beware sickrage" >> /opt/headphones/config.ini
+	sed -i 's|\(http_root =\) /|\1 /headphones|' /opt/headphones/config.ini
+	sed -i 's|\(http_port =\).*$|\1 8182|' /opt/headphones/config.ini
+
+	cp $DIR/systemd/system/headphones.service /etc/systemd/system/headphones.service
+	chown root:root /etc/systemd/system/headphones.service
+	chmod 644 /etc/systemd/system/headphones.service
+	systemctl daemon-reload
+	systemctl enable headphones
+	systemctl start headphones	 
 }
 
 
@@ -164,36 +168,48 @@ sonarr_install () {
 	apt-get update
 	apt-get install -y nzbdrone apt-transport-https
 	chown -R sonarr:sonarr /opt/NzbDrone
-	chmod +x  /opt/NzbDrone/NzbDrone.exe
+	chmod +x /opt/NzbDrone/NzbDrone.exe
 
-	
+	#create config file
 	sudo -u sonarr mono /opt/NzbDrone/NzbDrone.exe  & 
 	sleep 60 && kill -9 $!
+	
+	#base path for reverseproxy (nginx)
 	sed -i 's|<UrlBase></UrlBase>|<UrlBase>/sonarr</UrlBase>|' /opt/NzbDrone/.config/NzbDrone/config.xml
 	
-	
-	
+	#service
+	cp $DIR/systemd/system/sonarr.service /etc/systemd/system/sonarr.service
+	chown root:root /etc/systemd/system/sonarr.service
+	chmod 644 /etc/systemd/system/sonarr.service
+	systemctl daemon-reload
+	systemctl enable sonarr
+	systemctl start sonarr
 }
 
 jackett_install () {
 	mono_install
 	adduser --system --group --no-create-home  jackett
-	#libcurl-dev virtual package -> libcurl-dev
+	#libcurl-dev virtual package ->  libcurl4-openssl-dev
 	apt-get install -y libcurl4-openssl-dev
 	JACKETT_VER=$(curl -s https://github.com/Jackett/Jackett/releases/latest |  grep -Pom 1 "v\d\.\d\.\d{3}")
 	wget https://github.com/Jackett/Jackett/releases/download/${JACKETT_VER}/Jackett.Binaries.Mono.tar.gz -O /tmp/Jackett.Binaries.Mono.tar.gz
 	tar -xzf /tmp/Jackett.Binaries.Mono.tar.gz -C /opt
 	mv /opt/Jackett /opt/jackett
 	chown -R jackett:jackett /opt/jackett
+	chmod +x /opt/jackett/JackettConsole.exe
 	
 	pkill -u jackett
-	sudo -u jackett mono --debug /opt/jackett/JackettConsole.exe -d /opt/jackett &
+	sudo -u jackett /opt/jackett/JackettConsole.exe -d /opt/jackett &
 	sleep 30; kill -9 $! || true
 	
 	#base path for reverseproxy (nginx)
 	sed -i 's|BasePathOverride": .*|BasePathOverride": "/jackett"|' /opt/jackett/ServerConfig.json
-	#todo download systemd service
+	
+	#service
 	cp $DIR/systemd/system/jackett.service /etc/systemd/system/jackett.service
+	chown root:root /etc/systemd/system/jackett.service
+	chmod 644 /etc/systemd/system/jackett.service
+	# let systemd know there is a new service
 	systemctl daemon-reload
 	systemctl enable jackett
 	systemctl start jackett
@@ -208,12 +224,13 @@ netdata_install () {
 	# remove external call (registry.my-netdata.io)
 	sed -i "s|registry.my-netdata.io|${MYDOMAIN}/netdata|" /etc/netdata/netdata.conf
 	cp /tmp/netdata/system/netdata.service /etc/systemd/system/netdata.service
+	
 	# let systemd know there is a new service
 	systemctl daemon-reload
 	# enable netdata at boot
 	systemctl enable netdata
 	# start netdata
-	service netdata start
+	systemctl start netdata 
 	#http://127.0.0.1:19999/
 }
 
