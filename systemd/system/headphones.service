@@ -2,7 +2,7 @@
 Description=Headphones - Automatic music downloader for SABnzbd
 
 [Service]
-ExecStart=/opt/headphones/Headphones.py --config /etc/headphones/headphones.ini --datadir /opt/headphones/.headphones --daemon --nolaunch --quiet
+ExecStart=/opt/headphones/Headphones.py --config /etc/headphones/headphones.ini --datadir /opt/headphones --daemon --nolaunch --quiet
 GuessMainPID=no
 Type=forking
 User=headphones
