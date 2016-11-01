@@ -157,18 +157,27 @@ headphones_install () {
 
 sonarr_install () {
 	# https://github.com/Sonarr/Sonarr/wiki/Installation
+	adduser --system --group --no-create-home --home /opt/NzbDrone --gecos "NzbDrone" sonarr
 	mono_install
 	apt-key adv --keyserver keyserver.ubuntu.com --recv-keys FDA5DFFC
 	echo "deb http://apt.sonarr.tv/ master main" > /etc/apt/sources.list.d/sonarr.list
 	apt-get update
 	apt-get install -y nzbdrone apt-transport-https
+	chown -R sonarr:sonarr /opt/NzbDrone
+	chmod +x  /opt/NzbDrone/NzbDrone.exe
+
 	
-	mono --debug /opt/NzbDrone/NzbDrone.exe > /dev/null & sleep 60 && kill -9 $!
+	sudo -u sonarr mono /opt/NzbDrone/NzbDrone.exe  & 
+	sleep 60 && kill -9 $!
+	sed -i 's|<UrlBase></UrlBase>|<UrlBase>/sonarr</UrlBase>|' /opt/NzbDrone/.config/NzbDrone/config.xml
+	
+	
+	
 }
 
 jackett_install () {
 	mono_install
-	adduser --system --group --no-create-home jackett
+	adduser --system --group --no-create-home  jackett
 	#libcurl-dev virtual package -> libcurl-dev
 	apt-get install -y libcurl4-openssl-dev
 	JACKETT_VER=$(curl -s https://github.com/Jackett/Jackett/releases/latest |  grep -Pom 1 "v\d\.\d\.\d{3}")
