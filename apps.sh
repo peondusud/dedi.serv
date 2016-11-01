@@ -126,10 +126,12 @@ ADMIN_PASSWORD=psw" > /var/www/koel/.env
 }
 
 tardis_install () {
+	
 	git clone https://github.com/Jedediah04/TARDIStart.git /var/www/tardistart
 	cd /var/www/tardistart
 	bower install --allow-root
-	sed -i "s|domain.tld|${MYDOMAIN}|g" /var/www/tardistart/admin/service.json
+	cp $DIR/tardistart/service.json /var/www/tardistart/admin/service.json
+	sed -i "s|domain.tld|${MYDOMAIN}|g" /var/www/tardistart/admin/service.json	
 	chown -R www-data:www-data /var/www/tardistart
 }
 
