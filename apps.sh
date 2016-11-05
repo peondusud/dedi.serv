@@ -80,27 +80,30 @@ sickrage_install () {
 }
 
 couchpotato_install () {
+	couchpotato_datadir=/home/${rtorrent_user}/.config/couchpotato
 	useradd --system --user-group --no-create-home -G ${rtorrent_user} couchpotato || true
 	#usermod -a -G ${rtorrent_user} couchpotato
 	apt-get install -y python-lxml python-pip python-setuptools libssl-dev libffi-dev python-dev
 	#pip install -U pyopenssl
 	rm -rf /opt/couchpotato
 	git clone https://github.com/CouchPotato/CouchPotatoServer.git /opt/couchpotato
-	
-	sudo -u couchpotato /opt/couchpotato/CouchPotato.py &
+		
+	mkdir -p ${couchpotato_datadir}
+	chown -R couchpotato:couchpotato  ${couchpotato_datadir}
+	sudo -u couchpotato /opt/couchpotato/CouchPotato.py --data_dir ${couchpotato_datadir} &
+	#/opt/couchpotato/CouchPotato.py --data_dir ${couchpotato_datadir} &
 	sleep 30; kill -9 $! || true
 	
-	sed -i "s|\(url_base = \).*$|\1/couchpotato|"   /opt/couchpotato/.couchpotato/settings.conf
+	sed -i "s|\(url_base = \).*$|\1/couchpotato|"   ${couchpotato_datadir}/settings.conf
 	
 	#service
-	cp /opt/couchpotato/init/couchpotato.service /etc/systemd/system/couchpotato.service
-	sed -i 's|/var/lib/CouchPotatoServer|/opt/couchpotato|' /etc/systemd/system/couchpotato.service
-	chown root:root /etc/systemd/system/couchpotato.service
-	chmod 644 /etc/systemd/system/couchpotato.service
+	cp $DIR/systemd/system/couchpotato\@.service /etc/systemd/system/
+	chown root:root /etc/systemd/system/couchpotato\@.service
+	chmod 644 /etc/systemd/system/couchpotato\@.service
 	# let systemd know there is a new service
 	systemctl daemon-reload
-	systemctl enable couchpotato
-	systemctl start couchpotato
+	systemctl enable couchpotato@${rtorrent_user}
+	systemctl start couchpotato@${rtorrent_user}
 }
 
 koel_install () {
