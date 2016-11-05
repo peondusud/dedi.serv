@@ -5,8 +5,8 @@ Requires=network.target local-fs.target
 [Service]
 Type=forking
 User=%i
-ExecStart=/usr/bin/screen -d -m -S rtorrent /usr/local/bin/rtorrent
-ExecStop=/usr/bin/killall -w -s 2 rtorrent
+ExecStart=/usr/bin/screen -dmS rtorrent /usr/local/bin/rtorrent
+ExecStop=/usr/bin/killall -w -s 2 /usr/local/bin/rtorrent
 
 [Install]
 WantedBy=multi-user.target
