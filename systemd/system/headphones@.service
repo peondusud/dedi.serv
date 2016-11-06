@@ -3,11 +3,12 @@ Description=Headphones - Automatic music downloader for SABnzbd
 Requires=network.target local-fs.target
 
 [Service]
-Type=forking
-GuessMainPID=no
 User=headphones
 Group=headphones
-ExecStart=/opt/headphones/Headphones.py --config /opt/headphones/config.ini --datadir /opt/headphones --daemon --nolaunch --quiet
+
+Type=forking
+GuessMainPID=no
+ExecStart=python2 /opt/headphones/Headphones.py --daemon --nolaunch --quiet --datadir /home/%i/.config/headphones
 
 [Install]
 WantedBy=multi-user.target
