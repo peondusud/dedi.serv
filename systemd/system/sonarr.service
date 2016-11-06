@@ -5,6 +5,7 @@ After=network.target
 [Service]
 User=sonarr
 Group=sonarr
+WorkingDirectory=/home/%i
 
 Type=simple
 ExecStart=/opt/NzbDrone/NzbDrone.exe
