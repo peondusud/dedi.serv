@@ -93,7 +93,7 @@ couchpotato_install () {
 	chown -R couchpotato:couchpotato ${couchpotato_datadir}
 	
 	pkill -u couchpotato
-	sudo -u couchpotato /opt/couchpotato/CouchPotato.py --data_dir ${couchpotato_datadir} &
+	nohup sudo -u couchpotato /opt/couchpotato/CouchPotato.py --data_dir ${couchpotato_datadir} > /dev/null &
 	sleep 30; kill -9 $! || true
 	
 	sed -i "s|\(url_base = \).*$|\1/couchpotato|"  ${couchpotato_datadir}/settings.conf
@@ -218,7 +218,7 @@ jackett_install () {
 	chown -R jackett:jackett ${jackett_datadir}
 	
 	pkill -u jackett
-	sudo -u jackett mono /opt/jackett/JackettConsole.exe -d ${jackett_datadir} &
+	nohup sudo -u jackett mono /opt/jackett/JackettConsole.exe -d ${jackett_datadir} > /dev/null &
 	sleep 30; kill -9 $! || true
 	
 	#base path for reverseproxy (nginx)
