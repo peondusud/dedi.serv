@@ -92,7 +92,7 @@ couchpotato_install () {
 	mkdir -p ${couchpotato_datadir}
 	chown -R couchpotato:couchpotato ${couchpotato_datadir}
 	
-	pkill -u couchpotato
+	pkill -u couchpotato || true
 	nohup sudo -u couchpotato /opt/couchpotato/CouchPotato.py --data_dir ${couchpotato_datadir} > /dev/null &
 	sleep 30; kill -9 $! || true
 	
@@ -153,7 +153,7 @@ headphones_install () {
 	chown -R headphones:headphones ${headphones_datadir}	
 	
 	#create config file
-	pkill -u headphones
+	pkill -u headphones || true
 	nohup sudo -u headphones python2 /opt/headphones/Headphones.py --nolaunch --datadir ${headphones_datadir} &
 	sleep 30; kill -9 $! || true
 
@@ -186,7 +186,7 @@ sonarr_install () {
 	chown -R sonarr:sonarr /opt/NzbDrone
 
 	#create config file
-	pkill -u sonarr
+	pkill -u sonarr || true
 	nohup sudo -u sonarr mono /opt/NzbDrone/NzbDrone.exe -nobrowser -data=${sonarr_datadir} & 
 	sleep 60; kill -9 $! || true
 	
@@ -240,7 +240,7 @@ netdata_install () {
 	cd /tmp/netdata
 	
 	./netdata-installer.sh --dont-wait --libs-are-really-here	
-	killall netdata	
+	killall netdata	|| true
 	# remove external call (registry.my-netdata.io)
 	sed -i "s|registry.my-netdata.io|${MYDOMAIN}/netdata|" /etc/netdata/netdata.conf
 	
