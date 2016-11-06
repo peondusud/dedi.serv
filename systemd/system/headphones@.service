@@ -8,7 +8,7 @@ Group=headphones
 
 Type=forking
 GuessMainPID=no
-ExecStart=python2 /opt/headphones/Headphones.py --daemon --nolaunch --quiet --datadir /home/%i/.config/headphones
+ExecStart=/usr/bin/python2 /opt/headphones/Headphones.py --daemon --nolaunch --quiet --datadir /home/%i/.config/headphones
 
 [Install]
 WantedBy=multi-user.target
