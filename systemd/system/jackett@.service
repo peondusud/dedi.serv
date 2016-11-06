@@ -4,10 +4,11 @@ After=network.target
 
 [Service]
 User=jackett
+
+Type=simple
+ExecStart=/opt/jackett/JackettConsole.exe --ListenPrivate -d /home/%i/.config/jackett
 Restart=always
 RestartSec=5
-Type=simple
-ExecStart=/usr/bin/mono --debug /opt/jackett/JackettConsole.exe -d /opt/jackett
 TimeoutStopSec=20
 
 [Install]
