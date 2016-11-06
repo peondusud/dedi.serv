@@ -3,9 +3,10 @@ Description=CouchPotato application instance
 Requires=network.target local-fs.target
 
 [Service]
-Type=simple
 User=couchpotato
 Group=couchpotato
+
+Type=simple
 ExecStartPre=-mkdir -p /home/%i/.config/couchpotato
 ExecStart=/opt/couchpotato/CouchPotato.py --data_dir /home/%i/.config/couchpotato
 
