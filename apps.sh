@@ -40,7 +40,7 @@ emby_install () {
 	echo 'deb http://download.opensuse.org/repositories/home:/emby/Debian_8.0/ /' > /etc/apt/sources.list.d/embyserver.list
 	apt-key adv --keyserver keyserver.ubuntu.com --recv-key 0A506F712A7D8A28
 	apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
-	curl http://download.opensuse.org/repositories/home:emby/Debian_8.0/Release.key | apt-key add -
+	curl -L http://download.opensuse.org/repositories/home:/emby/Debian_8.0/Release.key | apt-key add -
 		
 	apt-get update
 	apt-get install -y mono-complete emby-server
