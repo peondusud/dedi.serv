@@ -8,7 +8,7 @@ Group=sonarr
 WorkingDirectory=/home/%i
 
 Type=simple
-ExecStart=/usr/bin/mono /opt/NzbDrone/NzbDrone.exe -nobrowser -data=/home/%i/.config/sonarr
+ExecStart=mono /opt/sonarr/NzbDrone.exe -nobrowser -data=/home/%i/.config/sonarr
 
 [Install]
 WantedBy=multi-user.target
