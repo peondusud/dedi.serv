@@ -45,7 +45,7 @@ Group=sickrage
 
 Type=forking
 GuessMainPID=no
-ExecStart=python2 /opt/sickrage/SickBeard.py -q --daemon --nolaunch --datadir=/home/%i/.config/sickrage
+ExecStart=/usr/bin/python2 /opt/sickrage/SickBeard.py -q --daemon --nolaunch --datadir=/home/%i/.config/sickrage
 
 [Install]
 WantedBy=multi-user.target
