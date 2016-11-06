@@ -61,7 +61,7 @@ sickrage_install () {
 	
 	#kill all running instances
 	pkill -9 -f SickBeard.py || true
-        sudo -u sickrage python2 /opt/sickrage/SickBeard.py --nolaunch --datadir=${sickrage_datadir} &
+        nohup sudo -u sickrage python2 /opt/sickrage/SickBeard.py --nolaunch --datadir=${sickrage_datadir} &
 	sleep 30; kill -9 $! || true
 		
 	#base path for reverseproxy (nginx)
@@ -154,7 +154,7 @@ headphones_install () {
 	
 	#create config file
 	pkill -u headphones
-	sudo -u headphones python2 /opt/headphones/Headphones.py --nolaunch --datadir ${headphones_datadir} &
+	nohup sudo -u headphones python2 /opt/headphones/Headphones.py --nolaunch --datadir ${headphones_datadir} &
 	sleep 30; kill -9 $! || true
 
 	#echo "customhost = ${MYDOMAIN}" 	>>    ${headphones_datadir}/config.ini 
@@ -187,7 +187,7 @@ sonarr_install () {
 
 	#create config file
 	pkill -u sonarr
-	sudo -u sonarr mono /opt/NzbDrone/NzbDrone.exe -nobrowser -data=${sonarr_datadir} & 
+	nohup sudo -u sonarr mono /opt/NzbDrone/NzbDrone.exe -nobrowser -data=${sonarr_datadir} & 
 	sleep 60; kill -9 $! || true
 	
 	#base path for reverseproxy (nginx)
@@ -261,8 +261,8 @@ syncthing_install () {
 }
 
 apps () {
-	plex_install
-	emby_install
+	#plex_install
+	#emby_install
 	sickrage_install
 	couchpotato_install
 	headphones_install
