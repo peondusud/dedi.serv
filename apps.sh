@@ -48,53 +48,55 @@ emby_install () {
 }
 
 sickrage_install () {
+	sickrage_datadir=/home/${rtorrent_user}/.config/sickrage
 	addgroup --system sickrage
 	adduser --disabled-password --system --home /opt/sickrage --gecos "SickRage" --ingroup sickrage sickrage
 	
 	rm -rf  /opt/sickrage
         git clone https://github.com/SickRage/SickRage.git /opt/sickrage
 
+	mkdir -p ${sickrage_datadir}
+	chown -R sickrage:sickrage ${sickrage_datadir}
+	chown -R sickrage:sickrage /opt/sickrage
+	
 	#kill all running instances
 	pkill -9 -f SickBeard.py || true
-        nohup python /opt/sickrage/SickBeard.py > /dev/null &
+        sudo -u sickrage python2 /opt/sickrage/SickBeard.py --nolaunch --datadir=${sickrage_datadir} &
 	sleep 30; kill -9 $! || true
-	
-	chown -R sickrage:sickrage /opt/sickrage
-	echo "SR_USER=sickrage"  > /etc/default/sickrage	
-	echo "SR_GROUP=sickrage" >> /etc/default/sickrage
-	echo "SR_HOME=/opt/sickrage/"    >> /etc/default/sickrage
-	echo "SR_DATA=/opt/sickrage/"    >> /etc/default/sickrage
-	
+		
 	#base path for reverseproxy (nginx)
-	sed -i 's|web_root = ""|web_root = \"/sickrage\"|' /opt/sickrage/config.ini
-	sed -i 's|handle_reverse_proxy.*$|handle_reverse_proxy = 1|' /opt/sickrage/config.ini
+	sed -i 's|web_root = ""|web_root = \"/sickrage\"|' ${sickrage_datadir}/config.ini
+	sed -i 's|handle_reverse_proxy.*$|handle_reverse_proxy = 1|' ${sickrage_datadir}/config.ini
 	
-	#service 	
-	cp /opt/sickrage/runscripts/init.systemd /etc/systemd/system/sickrage.service 
-	chown root:root /etc/systemd/system/sickrage.service
-	chmod 644 /etc/systemd/system/sickrage.service
+	#service
+	cp $DIR/systemd/system/sickrage\@.service /etc/systemd/system/
+	cp /opt/sickrage/runscripts/init.systemd /etc/systemd/system/sickrage\@.service
+	chown root:root /etc/systemd/system/sickrage\@.service
+	chmod 644 /etc/systemd/system/sickrage\@.service
 	# let systemd know there is a new service
 	systemctl daemon-reload
-	systemctl enable sickrage
-	systemctl start sickrage
+	systemctl enable sickrage@${rtorrent_user}
+	systemctl start sickrage@${rtorrent_user}
 }
 
 couchpotato_install () {
 	couchpotato_datadir=/home/${rtorrent_user}/.config/couchpotato
-	useradd --system --user-group --no-create-home -G ${rtorrent_user} couchpotato || true
+	useradd --system --user-group --no-create-home couchpotato || true
 	#usermod -a -G ${rtorrent_user} couchpotato
 	apt-get install -y python-lxml python-pip python-setuptools libssl-dev libffi-dev python-dev
 	#pip install -U pyopenssl
 	rm -rf /opt/couchpotato
 	git clone https://github.com/CouchPotato/CouchPotatoServer.git /opt/couchpotato
-		
+	chown -R couchpotato:couchpotato /opt/couchpotato
+	
 	mkdir -p ${couchpotato_datadir}
-	chown -R couchpotato:couchpotato  ${couchpotato_datadir}
+	chown -R couchpotato:couchpotato ${couchpotato_datadir}
+	
+	pkill -u couchpotato
 	sudo -u couchpotato /opt/couchpotato/CouchPotato.py --data_dir ${couchpotato_datadir} &
-	#/opt/couchpotato/CouchPotato.py --data_dir ${couchpotato_datadir} &
 	sleep 30; kill -9 $! || true
 	
-	sed -i "s|\(url_base = \).*$|\1/couchpotato|"   ${couchpotato_datadir}/settings.conf
+	sed -i "s|\(url_base = \).*$|\1/couchpotato|"  ${couchpotato_datadir}/settings.conf
 	
 	#service
 	cp $DIR/systemd/system/couchpotato\@.service /etc/systemd/system/
@@ -140,31 +142,37 @@ tardis_install () {
 
 headphones_install () {
 	# https://github.com/rembo10/headphones/wiki/Installation
-	adduser --system --group --no-create-home headphones
+	headphones_datadir=/home/${rtorrent_user}/.config/headphones
+	adduser --system --no-create-home --group headphones
+	
 	rm -rf /opt/headphones
 	git clone https://github.com/rembo10/headphones.git /opt/headphones
-	chown -R headphones:nogroup /opt/headphones
-	chmod +x /opt/headphones/Headphones.py
+	chown -R headphones:headphones /opt/headphones
+	
+	mkdir -p ${headphones_datadir}
+	chown -R headphones:headphones ${headphones_datadir}	
 	
 	#create config file
-	nohup /opt/headphones/Headphones.py --config /opt/headphones/config.ini --datadir /opt/headphones > /dev/null &
+	pkill -u headphones
+	sudo -u headphones python2 /opt/headphones/Headphones.py --nolaunch --datadir ${headphones_datadir} &
 	sleep 30; kill -9 $! || true
 
-	#echo "customhost = ${MYDOMAIN}" 		>> 	/opt/headphones/config.ini 
-	#echo "http_port = 8181 #beware sickrage" >> /opt/headphones/config.ini
-	sed -i 's|\(http_root =\) /|\1 /headphones|' /opt/headphones/config.ini
-	sed -i 's|\(http_port =\).*$|\1 8182|' /opt/headphones/config.ini
+	#echo "customhost = ${MYDOMAIN}" 	>>    ${headphones_datadir}/config.ini 
+	#echo "http_port = 8181 #beware sickrage" >>  ${headphones_datadir}/config.ini
+	sed -i 's|\(http_root =\) /|\1 /headphones|'  ${headphones_datadir}/config.ini
+	sed -i 's|\(http_port =\).*$|\1 8182|'  ${headphones_datadir}/config.ini
 
-	cp $DIR/systemd/system/headphones.service /etc/systemd/system/headphones.service
-	chown root:root /etc/systemd/system/headphones.service
-	chmod 644 /etc/systemd/system/headphones.service
+	cp $DIR/systemd/system/headphones\@.service /etc/systemd/system/
+	chown root:root /etc/systemd/system/headphones\@.service
+	chmod 644 /etc/systemd/system/headphones\@.service
 	systemctl daemon-reload
-	systemctl enable headphones
-	systemctl start headphones	 
+	systemctl enable headphones@${rtorrent_user}
+	systemctl start headphones@${rtorrent_user} 
 }
 
 
 sonarr_install () {
+	sonarr_datadir=/home/${rtorrent_user}/.config/sonarr
 	# https://github.com/Sonarr/Sonarr/wiki/Installation
 	adduser --system --group --no-create-home --home /opt/NzbDrone --gecos "NzbDrone" sonarr
 	mono_install
@@ -172,28 +180,32 @@ sonarr_install () {
 	echo "deb http://apt.sonarr.tv/ master main" > /etc/apt/sources.list.d/sonarr.list
 	apt-get update
 	apt-get install -y nzbdrone apt-transport-https
+	
+	mkdir -p ${sonarr_datadir}
+	chown -R sonarr:sonarr ${sonarr_datadir}
 	chown -R sonarr:sonarr /opt/NzbDrone
-	chmod +x /opt/NzbDrone/NzbDrone.exe
 
 	#create config file
-	sudo -u sonarr mono /opt/NzbDrone/NzbDrone.exe  & 
-	sleep 60 && kill -9 $!
+	pkill -u sonarr
+	sudo -u sonarr mono /opt/NzbDrone/NzbDrone.exe -nobrowser -data=${sonarr_datadir} & 
+	sleep 60; kill -9 $! || true
 	
 	#base path for reverseproxy (nginx)
-	sed -i 's|<UrlBase></UrlBase>|<UrlBase>/sonarr</UrlBase>|' /opt/NzbDrone/.config/NzbDrone/config.xml
+	sed -i 's|<UrlBase></UrlBase>|<UrlBase>/sonarr</UrlBase>|' ${sonarr_datadir}/config.xml
 	
 	#service
-	cp $DIR/systemd/system/sonarr.service /etc/systemd/system/sonarr.service
-	chown root:root /etc/systemd/system/sonarr.service
-	chmod 644 /etc/systemd/system/sonarr.service
+	cp $DIR/systemd/system/sonarr\@.service /etc/systemd/system/
+	chown root:root /etc/systemd/system/sonarr\@.service
+	chmod 644 /etc/systemd/system/sonarr\@.service
 	systemctl daemon-reload
-	systemctl enable sonarr
-	systemctl start sonarr
+	systemctl enable sonarr@${rtorrent_user}
+	systemctl start sonarr@${rtorrent_user}
 }
 
 jackett_install () {
+	jackett_datadir=/home/${rtorrent_user}/.config/jackett
 	mono_install
-	adduser --system --group --no-create-home  jackett
+	adduser --system --group --no-create-home jackett
 	#libcurl-dev virtual package ->  libcurl4-openssl-dev
 	apt-get install -y libcurl4-openssl-dev
 	JACKETT_VER=$(curl -s https://github.com/Jackett/Jackett/releases/latest |  grep -Pom 1 "v\d\.\d\.\d{3}")
@@ -201,42 +213,41 @@ jackett_install () {
 	tar -xzf /tmp/Jackett.Binaries.Mono.tar.gz -C /opt
 	mv /opt/Jackett /opt/jackett
 	chown -R jackett:jackett /opt/jackett
-	chmod +x /opt/jackett/JackettConsole.exe
+	
+	mkdir -p ${jackett_datadir}
+	chown -R jackett:jackett ${jackett_datadir}
 	
 	pkill -u jackett
-	sudo -u jackett /opt/jackett/JackettConsole.exe -d /opt/jackett &
+	sudo -u jackett mono /opt/jackett/JackettConsole.exe -d ${jackett_datadir} &
 	sleep 30; kill -9 $! || true
 	
 	#base path for reverseproxy (nginx)
-	sed -i 's|BasePathOverride": .*|BasePathOverride": "/jackett"|' /opt/jackett/ServerConfig.json
+	sed -i 's|BasePathOverride": .*|BasePathOverride": "/jackett"|' ${jackett_datadir}/ServerConfig.json
 	
 	#service
-	cp $DIR/systemd/system/jackett.service /etc/systemd/system/jackett.service
-	chown root:root /etc/systemd/system/jackett.service
-	chmod 644 /etc/systemd/system/jackett.service
+	cp $DIR/systemd/system/jackett\@.service /etc/systemd/system/
+	chown root:root /etc/systemd/system/jackett\@.service
+	chmod 644 /etc/systemd/system/jackett\@.service
 	# let systemd know there is a new service
 	systemctl daemon-reload
-	systemctl enable jackett
-	systemctl start jackett
+	systemctl enable jackett@${rtorrent_user}
+	systemctl start jackett@${rtorrent_user}
 	#http://ip.address:9117
 }
 netdata_install () {
 	apt-get  install -y zlib1g-dev uuid-dev libmnl-dev gcc make git autoconf autoconf-archive autogen automake pkg-config curl  python-yaml python-mysqldb python-psycopg2 netcat
 	git clone --depth=1 https://github.com/firehol/netdata.git /tmp/netdata
 	cd /tmp/netdata
-	./netdata-installer.sh  --dont-wait --libs-are-really-here	
+	
+	./netdata-installer.sh --dont-wait --libs-are-really-here	
 	killall netdata	
 	# remove external call (registry.my-netdata.io)
 	sed -i "s|registry.my-netdata.io|${MYDOMAIN}/netdata|" /etc/netdata/netdata.conf
-	cp /tmp/netdata/system/netdata.service /etc/systemd/system/netdata.service
 	
-	# let systemd know there is a new service
+	cp /tmp/netdata/system/netdata.service /etc/systemd/system/netdata.service
 	systemctl daemon-reload
-	# enable netdata at boot
 	systemctl enable netdata
-	# start netdata
 	systemctl start netdata 
-	#http://127.0.0.1:19999/
 }
 
 syncthing_install () {
