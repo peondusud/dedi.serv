@@ -1,0 +1,17 @@
+[Unit]
+Description=CouchPotato application instance
+Requires=network.target local-fs.target
+
+[Service]
+Type=simple
+User=couchpotato
+Group=couchpotato
+ExecStartPre=-mkdir -p /home/%i/.config/couchpotato
+ExecStart=/opt/couchpotato/CouchPotato.py --data_dir /home/%i/.config/couchpotato
+
+#Type=forking
+#GuessMainPID=no
+#ExecStart=/opt/couchpotato/CouchPotato.py --daemon --data_dir /home/%i/.config/couchpotato
+
+[Install]
+WantedBy=multi-user.target
