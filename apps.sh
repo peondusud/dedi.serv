@@ -229,6 +229,7 @@ jackett_install () {
 	JACKETT_VER=$(curl -s https://github.com/Jackett/Jackett/releases/latest |  grep -Pom 1 "v\d\.\d\.\d{3}")
 	wget https://github.com/Jackett/Jackett/releases/download/${JACKETT_VER}/Jackett.Binaries.Mono.tar.gz -O /tmp/Jackett.Binaries.Mono.tar.gz
 	tar -xzf /tmp/Jackett.Binaries.Mono.tar.gz -C /opt
+	rm -rf /opt/jackett
 	mv /opt/Jackett /opt/jackett
 	chown -R jackett:jackett /opt/jackett
 	
