@@ -1,7 +1,5 @@
 #!/bin/bash
 
-PLEX_DEPS="alsa alsa-oss oss-compat libasound2-plugins"
-
 mono_install () {
 	echo "deb http://download.mono-project.com/repo/debian wheezy main" 					> /etc/apt/sources.list.d/mono.list
 	echo "deb http://download.mono-project.com/repo/debian wheezy-apache24-compat main"	 	>> /etc/apt/sources.list.d/mono.list
@@ -17,18 +15,31 @@ mono_install () {
 }
 
 app_deps () {
-	curl -sL https://deb.nodesource.com/setup_4.x | bash -
-	apt-get install -y nodejs
-	npm install -g bower
-	npm install -g gulp
+	ret=$(command -v npm| wc -l) || true
+	if [ $ret -eq 0 ] ; then
+		curl -sL https://deb.nodesource.com/setup_4.x | bash -
+		apt-get install -y nodejs
+	fi
+	ret=$(command -v bower| wc -l) || true
+	if [ $ret -eq 0 ] ; then	
+		npm install -g bower
+	fi
+	ret=$(command -v gulp| wc -l) || true
+	if [ $ret -eq 0 ] ; then	
+		npm install -g gulp
+	fi
 	if ! [ -f "/usr/local/bin/composer" ] ; then
 		curl -sS https://getcomposer.org/installer | php
 		mv composer.phar /usr/local/bin/composer
 	fi
-	mono_install
+	ret=$(command -v mono| wc -l) || true
+	if [ $ret -eq 0 ] ; then
+		mono_install
+	fi
 }
 
 plex_install () {
+	#PLEX_DEPS="alsa alsa-oss oss-compat libasound2-plugins"
 	echo "deb http://shell.ninthgate.se/packages/debian jessie main" > /etc/apt/sources.list.d/plexmediaserver.list
 	curl http://shell.ninthgate.se/packages/shell.ninthgate.se.gpg.key | apt-key add -
 	apt-get update
@@ -62,7 +73,7 @@ sickrage_install () {
 	#kill all running instances
 	pkill -9 -f SickBeard.py || true
         nohup sudo -u sickrage python2 /opt/sickrage/SickBeard.py --nolaunch --datadir=${sickrage_datadir} > /dev/null &
-	sleep 30; kill -9 $! || true
+	sleep 30; kill -2 $!; sleep 5; kill -9 $! || true
 		
 	#base path for reverseproxy (nginx)
 	sed -i 's|web_root = ""|web_root = \"/sickrage\"|' ${sickrage_datadir}/config.ini
@@ -94,7 +105,7 @@ couchpotato_install () {
 	
 	pkill -u couchpotato || true
 	nohup sudo -u couchpotato /opt/couchpotato/CouchPotato.py --data_dir ${couchpotato_datadir} > /dev/null &
-	sleep 30; kill -9 $! || true
+	sleep 30; kill -2 $!; sleep 5; kill -9 $! || true
 	
 	sed -i "s|\(url_base = \).*$|\1/couchpotato|"  ${couchpotato_datadir}/settings.conf
 	
@@ -155,10 +166,9 @@ headphones_install () {
 	#create config file
 	pkill -u headphones || true
 	nohup sudo -u headphones python2 /opt/headphones/Headphones.py --nolaunch --datadir ${headphones_datadir} > /dev/null  &
-	sleep 30; kill -2 $! || true
+	sleep 30; kill -2 $!; sleep 5; kill -9 $! || true
 
 	#echo "customhost = ${MYDOMAIN}" 	>>    ${headphones_datadir}/config.ini 
-	#echo "http_port = 8181 #beware sickrage" >>  ${headphones_datadir}/config.ini
 	sed -i 's|\(http_root =\) /|\1 /headphones|'  ${headphones_datadir}/config.ini
 	sed -i 's|\(http_port =\).*$|\1 8182|'  ${headphones_datadir}/config.ini
 
@@ -172,10 +182,15 @@ headphones_install () {
 
 
 sonarr_install () {
-	sonarr_datadir=/home/${rtorrent_user}/.config/sonarr
 	# https://github.com/Sonarr/Sonarr/wiki/Installation
+	ret=$(command -v mono| wc -l) || true
+	if [ $ret -eq 0 ] ; then
+		mono_install
+	fi
+	
+	sonarr_datadir=/home/${rtorrent_user}/.config/sonarr
+	
 	adduser --system --group --no-create-home --home /opt/NzbDrone --gecos "NzbDrone" sonarr
-	mono_install
 	apt-key adv --keyserver keyserver.ubuntu.com --recv-keys FDA5DFFC
 	echo "deb http://apt.sonarr.tv/ master main" > /etc/apt/sources.list.d/sonarr.list
 	apt-get update
@@ -188,7 +203,7 @@ sonarr_install () {
 	#create config file
 	pkill -u sonarr || true
 	nohup sudo -u sonarr mono /opt/NzbDrone/NzbDrone.exe -nobrowser -data=${sonarr_datadir} > /dev/null & 
-	sleep 60; kill -9 $! || true
+	sleep 30; kill -2 $!; sleep 5; kill -9 $! || true
 	
 	#base path for reverseproxy (nginx)
 	sed -i 's|<UrlBase></UrlBase>|<UrlBase>/sonarr</UrlBase>|' ${sonarr_datadir}/config.xml
@@ -202,9 +217,12 @@ sonarr_install () {
 	systemctl start sonarr@${rtorrent_user}
 }
 
-jackett_install () {
+jackett_install () {	
+	ret=$(command -v mono| wc -l) || true
+	if [ $ret -eq 0 ] ; then
+		mono_install
+	fi
 	jackett_datadir=/home/${rtorrent_user}/.config/jackett
-	mono_install
 	adduser --system --group --no-create-home jackett
 	#libcurl-dev virtual package ->  libcurl4-openssl-dev
 	apt-get install -y libcurl4-openssl-dev
@@ -219,7 +237,7 @@ jackett_install () {
 	
 	pkill -u jackett
 	nohup sudo -u jackett mono /opt/jackett/JackettConsole.exe -d ${jackett_datadir} > /dev/null &
-	sleep 30; kill -9 $! || true
+	sleep 30; kill -2 $!; sleep 5; kill -9 $! || true
 	
 	#base path for reverseproxy (nginx)
 	sed -i 's|BasePathOverride": .*|BasePathOverride": "/jackett"|' ${jackett_datadir}/ServerConfig.json
