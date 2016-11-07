@@ -81,7 +81,6 @@ sickrage_install () {
 	
 	#service
 	cp $DIR/systemd/system/sickrage\@.service /etc/systemd/system/
-	cp /opt/sickrage/runscripts/init.systemd /etc/systemd/system/sickrage\@.service
 	chown root:root /etc/systemd/system/sickrage\@.service
 	chmod 644 /etc/systemd/system/sickrage\@.service
 	# let systemd know there is a new service
