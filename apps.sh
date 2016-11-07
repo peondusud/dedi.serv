@@ -62,7 +62,7 @@ sickrage_install () {
 	#kill all running instances
 	pkill -9 -f SickBeard.py || true
         nohup sudo -u sickrage python2 /opt/sickrage/SickBeard.py --nolaunch --datadir=${sickrage_datadir} > /dev/null &
-	sleep 30; kill -9 $! || true
+	sleep 30; kill -2 $! || true
 		
 	#base path for reverseproxy (nginx)
 	sed -i 's|web_root = ""|web_root = \"/sickrage\"|' ${sickrage_datadir}/config.ini
