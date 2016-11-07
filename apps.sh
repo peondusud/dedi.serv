@@ -168,7 +168,7 @@ headphones_install () {
 	sleep 30; kill -2 $!; sleep 5; kill -9 $! || true
 
 	#echo "customhost = ${MYDOMAIN}" 	>>    ${headphones_datadir}/config.ini 
-	sed -i 's|\(http_root =\) /|\1 /headphones|'  ${headphones_datadir}/config.ini
+	sed -i 's|\(http_root =\).*|\1 /headphones|' ${headphones_datadir}/config.ini
 	sed -i 's|\(http_port =\).*$|\1 8182|'  ${headphones_datadir}/config.ini
 
 	cp $DIR/systemd/system/headphones\@.service /etc/systemd/system/
