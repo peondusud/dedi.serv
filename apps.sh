@@ -62,7 +62,7 @@ sickrage_install () {
 	#kill all running instances
 	pkill -9 -f SickBeard.py || true
         nohup sudo -u sickrage python2 /opt/sickrage/SickBeard.py --nolaunch --datadir=${sickrage_datadir} > /dev/null &
-	sleep 30; kill -2 $! || true
+	sleep 30; kill -9 $! || true
 		
 	#base path for reverseproxy (nginx)
 	sed -i 's|web_root = ""|web_root = \"/sickrage\"|' ${sickrage_datadir}/config.ini
@@ -155,7 +155,7 @@ headphones_install () {
 	#create config file
 	pkill -u headphones || true
 	nohup sudo -u headphones python2 /opt/headphones/Headphones.py --nolaunch --datadir ${headphones_datadir} > /dev/null  &
-	sleep 30; kill -9 $! || true
+	sleep 30; kill -2 $! || true
 
 	#echo "customhost = ${MYDOMAIN}" 	>>    ${headphones_datadir}/config.ini 
 	#echo "http_port = 8181 #beware sickrage" >>  ${headphones_datadir}/config.ini
