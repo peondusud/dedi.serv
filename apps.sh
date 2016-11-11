@@ -235,7 +235,7 @@ jackett_install () {
 	mkdir -p ${jackett_datadir}
 	chown -R jackett:jackett ${jackett_datadir}
 	
-	pkill -u jackett
+	pkill -u jackett || true
 	nohup sudo -u jackett mono /opt/jackett/JackettConsole.exe -d ${jackett_datadir} > /dev/null &
 	sleep 30; kill -2 $!; sleep 5; kill -9 $! || true
 	
@@ -262,8 +262,7 @@ netdata_install () {
 	killall netdata	|| true
 	# remove external call (registry.my-netdata.io)
 	sed -i "s|registry.my-netdata.io|${MYDOMAIN}/netdata|" /etc/netdata/netdata.conf
-	
-	cp ${netdata_dir_tmp}/system/netdata.service.in /etc/systemd/system/netdata.service
+
 	rm -rf ${netdata_dir_tmp} || true
 	systemctl daemon-reload
 	systemctl enable netdata
@@ -281,7 +280,7 @@ syncthing_install () {
 }
 
 apps () {
-	#plex_install
+	plex_install
 	#emby_install
 	sickrage_install
 	couchpotato_install
