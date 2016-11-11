@@ -255,7 +255,6 @@ jackett_install () {
 netdata_install () {
 	netdata_dir_tmp=/tmp/netdata
 	apt-get  install -y zlib1g-dev uuid-dev libmnl-dev gcc make git autoconf autoconf-archive autogen automake pkg-config curl  python-yaml python-mysqldb python-psycopg2 netcat
-	rm -rf ${netdata_dir_tmp} || true
 	git clone --depth=1 https://github.com/firehol/netdata.git ${netdata_dir_tmp} 
 	cd ${netdata_dir_tmp} 
 	
@@ -265,6 +264,7 @@ netdata_install () {
 	sed -i "s|registry.my-netdata.io|${MYDOMAIN}/netdata|" /etc/netdata/netdata.conf
 	
 	cp ${netdata_dir_tmp}/system/netdata.service.in /etc/systemd/system/netdata.service
+	rm -rf ${netdata_dir_tmp} || true
 	systemctl daemon-reload
 	systemctl enable netdata
 	systemctl start netdata 
