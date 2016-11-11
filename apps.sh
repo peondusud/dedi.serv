@@ -254,7 +254,8 @@ jackett_install () {
 }
 netdata_install () {
 	netdata_dir_tmp=/tmp/netdata
-	apt-get  install -y zlib1g-dev uuid-dev libmnl-dev gcc make git autoconf autoconf-archive autogen automake pkg-config curl  python-yaml python-mysqldb python-psycopg2 netcat
+    apt-get update
+	apt-get install -y zlib1g-dev uuid-dev libmnl-dev gcc make git autoconf autoconf-archive autogen automake pkg-config curl python-yaml python-mysqldb python-psycopg2 netcat
 	git clone --depth=1 https://github.com/firehol/netdata.git ${netdata_dir_tmp} 
 	cd ${netdata_dir_tmp} 
 	
