@@ -39,11 +39,12 @@ app_deps () {
 }
 
 plex_install () {
-	#PLEX_DEPS="alsa alsa-oss oss-compat libasound2-plugins"
+	PLEX_DEPS="alsa-base alsa-utils alsa-oss oss-compat libasound2-plugins"
+	#echo "deb https://downloads.plex.tv/repo/deb/ public main" > /etc/apt/sources.list.d/plexmediaserver.list
 	echo "deb http://shell.ninthgate.se/packages/debian jessie main" > /etc/apt/sources.list.d/plexmediaserver.list
 	curl http://shell.ninthgate.se/packages/shell.ninthgate.se.gpg.key | apt-key add -
 	apt-get update
-	apt-get install -y plexmediaserver
+	apt-get install -y ${PLEX_DEPS} plexmediaserver
 	service plexmediaserver start
 }
 
