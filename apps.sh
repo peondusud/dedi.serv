@@ -253,17 +253,18 @@ jackett_install () {
 	#http://ip.address:9117
 }
 netdata_install () {
+	netdata_dir_tmp=/tmp/netdata
 	apt-get  install -y zlib1g-dev uuid-dev libmnl-dev gcc make git autoconf autoconf-archive autogen automake pkg-config curl  python-yaml python-mysqldb python-psycopg2 netcat
-	rm -rf /tmp/netdata || true
-	git clone --depth=1 https://github.com/firehol/netdata.git /tmp/netdata
-	cd /tmp/netdata
+	rm -rf ${netdata_dir_tmp} || true
+	git clone --depth=1 https://github.com/firehol/netdata.git ${netdata_dir_tmp} 
+	cd ${netdata_dir_tmp} 
 	
 	./netdata-installer.sh --dont-wait --libs-are-really-here	
 	killall netdata	|| true
 	# remove external call (registry.my-netdata.io)
 	sed -i "s|registry.my-netdata.io|${MYDOMAIN}/netdata|" /etc/netdata/netdata.conf
 	
-	cp /tmp/netdata/system/netdata.service /etc/systemd/system/netdata.service
+	cp ${netdata_dir_tmp}/system/netdata.service.in /etc/systemd/system/netdata.service
 	systemctl daemon-reload
 	systemctl enable netdata
 	systemctl start netdata 
