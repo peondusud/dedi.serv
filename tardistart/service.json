@@ -50,7 +50,7 @@
     {
         "icone": "fa-bar-chart",
         "id": "8",
-        "lien": "https://domain.tld/netdata",
+        "lien": "https://domain.tld/netdata/",
         "titre": "Netdata"
     },
     {
