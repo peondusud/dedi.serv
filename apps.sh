@@ -39,6 +39,7 @@ app_deps () {
 }
 
 plex_install () {
+	# https://support.plex.tv/hc/en-us/articles/201543147-What-network-ports-do-I-need-to-allow-through-my-firewall-
 	PLEX_DEPS="alsa-base alsa-utils alsa-oss oss-compat libasound2-plugins"
 	#echo "deb https://downloads.plex.tv/repo/deb/ public main" > /etc/apt/sources.list.d/plexmediaserver.list
 	echo "deb http://shell.ninthgate.se/packages/debian jessie main" > /etc/apt/sources.list.d/plexmediaserver.list
