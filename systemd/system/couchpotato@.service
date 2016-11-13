@@ -10,6 +10,8 @@ Type=simple
 ExecStartPre=-mkdir -p /home/%i/.config/couchpotato
 ExecStart=/usr/bin/python2 /opt/couchpotato/CouchPotato.py --data_dir /home/%i/.config/couchpotato
 
+Restart=always
+
 #Type=forking
 #GuessMainPID=no
 #ExecStart=/usr/bin/python2 /opt/couchpotato/CouchPotato.py --daemon --data_dir /home/%i/.config/couchpotato
