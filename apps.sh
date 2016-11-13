@@ -50,34 +50,37 @@ plex_install () {
 }
 
 plex_plugins () {
+	plex_plugins_dir="/var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-ins"
 	# Trakt.tv (for Plex)
 	# https://github.com/trakt/Plex-Trakt-Scrobbler
-	plex_plugins_dir="/var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-ins/"
-	wget https://github.com/trakt/Plex-Trakt-Scrobbler/archive/master.zip -O /tmp/Plex-Trakt-Scrobbler.zip
-	unzip /tmp/Plex-Trakt-Scrobbler.zip  -d /tmp/
-	cp -r Plex-Trakt-Scrobbler-master/Trakttv.bundle ${plex_plugins_dir}
-	rm -rf /tmp/Plex-Trakt-Scrobbler.zip /tmp/Plex-Trakt-Scrobbler-master
+	last_ver=$(curl -Ls https://github.com/trakt/Plex-Trakt-Scrobbler/releases/latest | sed  -n 's|^.*"\(/.*.zip\)".*$|\1|p' )
+	wget https://github.com$last_ver -O /tmp/Plex-Trakt-Scrobbler.zip
+	unzip /tmp/Plex-Trakt-Scrobbler.zip -d /tmp/
+	find /tmp -type d -name "Trakttv.bundle" -exec mv {} "${plex_plugins_dir}/" \; || true
+	rm -rf /tmp/Plex-Trakt-Scrobbler.zip
 	
 	# Sub-Zero for Plex
 	# https://github.com/pannal/Sub-Zero.bundle
-	wget https://github.com/pannal/Sub-Zero.bundle/archive/master.zip -O /tmp/Plex-Sub-Zero.zip
-	unzip /tmp/Plex-Sub-Zero.zip  -d /tmp/
-	mv /tmp/Sub-Zero.bundle-master ${plex_plugins_dir}/Sub-Zero.bundle
+	last_ver=$(curl -Ls https://github.com/pannal/Sub-Zero.bundle/releases/latest | sed -n 's|^.*"\(/.*release.*.zip\)".*$|\1|p' )
+	wget https://github.com$last_ver -O /tmp/Plex-Sub-Zero.zip
+	unzip /tmp/Plex-Sub-Zero.zip -d /tmp/
+	mv /tmp/Sub-Zero.bundle "${plex_plugins_dir}/"
 	rm -rf /tmp/Plex-Sub-Zero.zip
 	
 	# Plex Request Channel
 	# https://github.com/ngovil21/PlexRequestChannel.bundle
 	wget https://github.com/ngovil21/PlexRequestChannel.bundle/archive/master.zip -O /tmp/Plex-RequestChannel.zip
-	unzip /tmp/Plex-RequestChannel.zip  -d /tmp/
-	mv /tmp/PlexRequestChannel.bundle-master ${plex_plugins_dir}/PlexRequestChannel.bundle
+	unzip /tmp/Plex-RequestChannel.zip -d /tmp/
+	mv /tmp/PlexRequestChannel.bundle-master "${plex_plugins_dir}/PlexRequestChannel.bundle"
 	rm -rf /tmp/Plex-RequestChannel.zip
 	
 	# ComicReader
 	# https://github.com/coryo/ComicReader.bundle
 	apt-get install unrar p7zip
-	wget https://github.com/coryo/ComicReader.bundle/archive/master.zip -O /tmp/Plex-ComicReader.zip
+	last_ver=$(curl -Ls https://github.com/coryo/ComicReader.bundle/releases/latest | sed -n 's|^.*"\(/.*.zip\)".*$|\1|p' )
+	wget https://github.com$last_ver -O /tmp/Plex-ComicReader.zip
 	unzip /tmp/Plex-ComicReader.zip -d /tmp/
-	mv /tmp/ComicReader.bundle-master ${plex_plugins_dir}/ComicReader.bundle
+	find /tmp/ -type d -name "ComicReader.bundle*" -exec mv {} "${plex_plugins_dir}/ComicReader.bundle" \; || true
 	rm -rf /tmp/Plex-ComicReader.zip
 	
 
@@ -114,8 +117,38 @@ emby_install () {
 
 subtitles_install () {
 	# https://github.com/agermanidis/autosub
-	pip install autosub
+	#pip install autosub
+	
+	# Auto-Sub Bootstrap Bill
+	# https://github.com/BenjV/autosub-bootstrapbill
+	pip install html5lib cheetah
+	git clone https://github.com/BenjV/autosub-bootstrapbill /opt/autosub
+	
+}
 
+mopidy_install () {
+	wget -q -O - https://apt.mopidy.com/mopidy.gpg | sudo apt-key add -
+	wget -q https://apt.mopidy.com/jessie.list -O /etc/apt/sources.list.d/mopidy.list
+	apt-get update
+	apt-get install -y mopidy
+	service mopidy start
+	
+	# https://github.com/mopidy/mopidy-local-sqlite
+	pip install Mopidy-Local-Sqlite
+	
+	# https://github.com/dirkgroenen/mopidy-mopify
+	pip install Mopidy-Mopify
+	
+	# https://github.com/mopidy/mopidy-spotify
+	apt-get install -y  libspotify12 python-spotify 
+	pip install Mopidy-Spotify
+	
+	# https://github.com/jaedb/spotmop
+	pip install Mopidy-Spotmop
+	
+	# https://github.com/mopidy/mopidy-youtube
+	apt-get install -y gstreamer1.0-plugins-bad
+	pip install Mopidy-YouTube
 }
 
 sickrage_install () {
