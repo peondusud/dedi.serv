@@ -10,7 +10,9 @@ Type=simple
 ExecStartPre=-mkdir -p /home/%i/.config/couchpotato
 ExecStart=/usr/bin/python2 /opt/couchpotato/CouchPotato.py --data_dir /home/%i/.config/couchpotato
 
-Restart=always
+Restart=on-failure
+RestartSec=42s
+
 
 #Type=forking
 #GuessMainPID=no
