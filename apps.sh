@@ -49,6 +49,58 @@ plex_install () {
 	service plexmediaserver start
 }
 
+plex_plugins () {
+	# Trakt.tv (for Plex)
+	# https://github.com/trakt/Plex-Trakt-Scrobbler
+	plex_plugins_dir="/var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-ins/"
+	wget https://github.com/trakt/Plex-Trakt-Scrobbler/archive/master.zip -O /tmp/Plex-Trakt-Scrobbler.zip
+	unzip /tmp/Plex-Trakt-Scrobbler.zip  -d /tmp/
+	cp -r Plex-Trakt-Scrobbler-master/Trakttv.bundle ${plex_plugins_dir}
+	rm -rf /tmp/Plex-Trakt-Scrobbler.zip /tmp/Plex-Trakt-Scrobbler-master
+	
+	# Sub-Zero for Plex
+	# https://github.com/pannal/Sub-Zero.bundle
+	wget https://github.com/pannal/Sub-Zero.bundle/archive/master.zip -O /tmp/Plex-Sub-Zero.zip
+	unzip /tmp/Plex-Sub-Zero.zip  -d /tmp/
+	mv /tmp/Sub-Zero.bundle-master ${plex_plugins_dir}/Sub-Zero.bundle
+	rm -rf /tmp/Plex-Sub-Zero.zip
+	
+	# Plex Request Channel
+	# https://github.com/ngovil21/PlexRequestChannel.bundle
+	wget https://github.com/ngovil21/PlexRequestChannel.bundle/archive/master.zip -O /tmp/Plex-RequestChannel.zip
+	unzip /tmp/Plex-RequestChannel.zip  -d /tmp/
+	mv /tmp/PlexRequestChannel.bundle-master ${plex_plugins_dir}/PlexRequestChannel.bundle
+	rm -rf /tmp/Plex-RequestChannel.zip
+	
+	# ComicReader
+	# https://github.com/coryo/ComicReader.bundle
+	apt-get install unrar p7zip
+	wget https://github.com/coryo/ComicReader.bundle/archive/master.zip -O /tmp/Plex-ComicReader.zip
+	unzip /tmp/Plex-ComicReader.zip -d /tmp/
+	mv /tmp/ComicReader.bundle-master ${plex_plugins_dir}/ComicReader.bundle
+	rm -rf /tmp/Plex-ComicReader.zip
+	
+
+
+
+}
+
+
+wetty_install () {
+	# Wetty = Web + tty
+	# https://github.com/krishnasrinivas/wetty 
+	git clone https://github.com/krishnasrinivas/wetty /opt/wetty
+	cd /opt/wetty/
+	npm install
+	#node /opt/wetty/app.js -p 3000 --sshport 22222 --sshuser peon
+	cp $DIR/systemd/system/wetty.service /etc/systemd/system/
+	sed -i "s|@SSH_USER@|${USERNAME}|"  /etc/systemd/system/wetty.service
+	sed -i "s|@SSH_PORT@|${SSH_PORT}|"  /etc/systemd/system/wetty.service
+	systemctl daemon-reload
+	#systemctl enable wetty
+	#systemctl start wetty
+}
+
 emby_install () {
 	echo 'deb http://download.opensuse.org/repositories/home:/emby/Debian_8.0/ /' > /etc/apt/sources.list.d/embyserver.list
 	apt-key adv --keyserver keyserver.ubuntu.com --recv-key 0A506F712A7D8A28
@@ -58,6 +110,12 @@ emby_install () {
 	apt-get update
 	apt-get install -y mono-complete emby-server
 	service emby-server start
+}
+
+subtitles_install () {
+	# https://github.com/agermanidis/autosub
+	pip install autosub
+
 }
 
 sickrage_install () {
@@ -72,12 +130,12 @@ sickrage_install () {
 	chown -R sickrage:sickrage ${sickrage_datadir}
 	chown -R sickrage:sickrage /opt/sickrage
 	
-	#kill all running instances
+	# kill all running instances
 	pkill -9 -f SickBeard.py || true
         nohup sudo -u sickrage python2 /opt/sickrage/SickBeard.py --nolaunch --datadir=${sickrage_datadir} > /dev/null &
 	sleep 30; kill -2 $!; sleep 5; kill -9 $! || true
 		
-	#base path for reverseproxy (nginx)
+	# base path for reverseproxy (nginx)
 	sed -i 's|web_root = ""|web_root = \"/sickrage\"|' ${sickrage_datadir}/config.ini
 	sed -i 's|handle_reverse_proxy.*$|handle_reverse_proxy = 1|' ${sickrage_datadir}/config.ini
 	
