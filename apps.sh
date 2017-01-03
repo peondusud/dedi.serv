@@ -44,6 +44,10 @@ plex_install () {
 	#echo "deb https://downloads.plex.tv/repo/deb/ public main" > /etc/apt/sources.list.d/plexmediaserver.list
 	echo "deb http://shell.ninthgate.se/packages/debian jessie main" > /etc/apt/sources.list.d/plexmediaserver.list
 	curl http://shell.ninthgate.se/packages/shell.ninthgate.se.gpg.key | apt-key add -
+	# When enabling this repo please remember to add the PlexPublic.Key into the apt setup.
+	# wget -q https://downloads.plex.tv/plex-keys/PlexSign.key -O - | sudo apt-key add -
+	#deb https://downloads.plex.tv/repo/deb/ public main
+
 	apt-get update
 	apt-get install -y ${PLEX_DEPS} plexmediaserver
 	service plexmediaserver start
